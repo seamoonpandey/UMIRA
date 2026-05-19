@@ -26,12 +26,18 @@ export class MockProvider implements AIProvider {
 
     // Route by system prompt to avoid keyword collision in user messages
     if (systemMsg.includes("rewrite text to reduce cognitive load")) {
+      // Extract original text from user message (format: "Text: <text>\nReading preference: ...")
+      const origMatch = userMsg.match(/^Text:\s*(.+)$/m);
+      const originalText = origMatch ? origMatch[1] : userMsg.slice(0, 200);
+      // Use first 2 sentences from original as simplified to pass grounding validator
+      const firstSentence = originalText.split(/[.!?]/).slice(0, 1).join(".").trim();
+      const simplified = firstSentence.length > 10 ? firstSentence : originalText.slice(0, 100);
       return {
-        summary: "This text discusses how to reduce cognitive load through clear writing.",
+        summary: simplified.length > 80 ? simplified.slice(0, 80) + "." : simplified,
         chunks: [
-          { original: userMsg.slice(0, 200), simplified: "Clear writing helps reduce mental effort when reading." },
+          { original: originalText.slice(0, 200), simplified },
         ],
-        key_terms: [{ term: "Cognitive load", definition: "The amount of mental effort needed to process information" }],
+        key_terms: [],
       };
     }
     if (systemMsg.includes("short, warm, non-judgmental")) {
