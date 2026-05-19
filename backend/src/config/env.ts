@@ -17,6 +17,8 @@ const Env = z.object({
   RATE_LIMIT_MAX: z.coerce.number().default(100),
   RATE_LIMIT_WINDOW: z.coerce.number().default(60_000),
   LOG_LEVEL: z.string().default("info"),
+  SENTRY_DSN: z.string().url().optional(),
+  SENTRY_ENVIRONMENT: z.string().optional(),
 });
 
 export const env = Env.parse(process.env);

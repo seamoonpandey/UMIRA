@@ -47,6 +47,7 @@ vi.mock("../db/prisma.js", () => ({
     aiJob: mockModel(),
     auditLog: mockModel(),
     $disconnect: vi.fn(),
+    $queryRaw: vi.fn().mockResolvedValue([{ 1: 1 }]),
     $transaction: vi.fn((cb: (tx: Record<string, any>) => any) =>
       cb({
         microtask: {
