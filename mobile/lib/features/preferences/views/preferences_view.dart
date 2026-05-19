@@ -110,7 +110,7 @@ class PreferencesView extends ConsumerWidget {
             leading: const Icon(Icons.download),
             title: const Text('Export my data'),
             subtitle: const Text('Download a JSON copy of everything'),
-            onTap: () => _exportInfo(context),
+            onTap: () => _exportInfo(context, ref),
           ),
           ListTile(
             leading: const Icon(Icons.delete_forever, color: Colors.red),
@@ -142,16 +142,35 @@ class PreferencesView extends ConsumerWidget {
         child: Text(t, style: const TextStyle(fontWeight: FontWeight.bold)),
       );
 
-  void _exportInfo(BuildContext context) {
+  void _exportInfo(BuildContext context, WidgetRef ref) {
     showDialog(
       context: context,
       builder: (_) => AlertDialog(
-        title: const Text('Export'),
-        content: const Text(
-          'Use the web endpoint /v1/privacy/export with your JWT to download a complete JSON copy. '
-          'A native share/download flow ships in the next release.',
-        ),
-        actions: [TextButton(onPressed: () => Navigator.pop(context), child: const Text('OK'))],
+        title: const Text('Export your data'),
+        content: const Text('Download a complete JSON copy of your data.'),
+        actions: [
+          TextButton(onPressed: () => Navigator.pop(context), child: const Text('Cancel')),
+          FilledButton(
+            onPressed: () async {
+              Navigator.pop(context);
+              try {
+                await ref.read(preferencesRepoProvider).exportData();
+                if (context.mounted) {
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    const SnackBar(content: Text('Data export started — check your downloads.')),
+                  );
+                }
+              } catch (e) {
+                if (context.mounted) {
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    SnackBar(content: Text('Export failed: $e')),
+                  );
+                }
+              }
+            },
+            child: const Text('Export'),
+          ),
+        ],
       ),
     );
   }

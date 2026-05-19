@@ -1,4 +1,5 @@
 import { prisma } from "../db/prisma.js";
+import type { Prisma } from "@prisma/client";
 
 export async function audit(
   userId: string | null,
@@ -13,7 +14,7 @@ export async function audit(
       action,
       entityType,
       entityId: entityId ?? undefined,
-      metadataJson: metadata ?? undefined,
+      metadataJson: (metadata ?? undefined) as Prisma.InputJsonValue | undefined,
     },
   });
 }

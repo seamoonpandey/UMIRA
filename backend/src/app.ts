@@ -1,4 +1,4 @@
-import Fastify, { type FastifyInstance } from "fastify";
+import Fastify, { type FastifyInstance, type FastifyError } from "fastify";
 import cors from "@fastify/cors";
 import helmet from "@fastify/helmet";
 import rateLimit from "@fastify/rate-limit";
@@ -33,7 +33,7 @@ export async function buildApp(): Promise<FastifyInstance> {
   });
   await registerJwt(app);
 
-  app.setErrorHandler((err, _req, reply) => {
+  app.setErrorHandler((err: FastifyError | HttpError | ZodError, _req, reply) => {
     if (err instanceof ZodError) {
       return reply.code(400).send({ error: "validation_error", details: err.flatten() });
     }

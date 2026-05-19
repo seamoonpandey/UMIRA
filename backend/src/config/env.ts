@@ -9,7 +9,6 @@ const Env = z.object({
   CORS_ORIGINS: z.string().default("http://localhost:8080"),
   JWT_SECRET: z.string().min(32, "JWT_SECRET must be at least 32 chars"),
   JWT_EXPIRES_IN: z.string().default("7d"),
-  BCRYPT_ROUNDS: z.coerce.number().default(12),
   AI_PROVIDER: z.enum(["openai", "anthropic", "mock"]).default("mock"),
   OPENAI_API_KEY: z.string().optional(),
   OPENAI_MODEL: z.string().default("gpt-4o-mini"),
