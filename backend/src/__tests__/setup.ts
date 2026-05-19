@@ -13,6 +13,7 @@ process.env.LOG_LEVEL = "silent";
 process.env.CORS_ORIGINS = "http://localhost:8080";
 process.env.RATE_LIMIT_MAX = "1000";
 process.env.RATE_LIMIT_WINDOW = "60000";
+process.env.PROMETHEUS_ENABLED = "false";
 
 // ══════════════════════════════════════════════
 // Prisma mock — all models return vi.fn() stubs

@@ -9,6 +9,7 @@ import * as Sentry from "@sentry/node";
 
 import { env } from "./config/env.js";
 import { logger as appLogger } from "./config/logger.js";
+import { initMetrics, getRegistry, metricsText, httpRequestsTotal, httpRequestDuration } from "./config/metrics.js";
 import { registerJwt } from "./auth/jwt.js";
 import { HttpError } from "./utils/errors.js";
 import { prisma } from "./db/prisma.js";
@@ -22,7 +23,8 @@ import analyticsRoutes from "./modules/analytics/analytics.routes.js";
 import privacyRoutes from "./modules/privacy/privacy.routes.js";
 
 export async function buildApp(): Promise<FastifyInstance> {
-  const app = Fastify({ logger: true, trustProxy: true, bodyLimit: 1_000_000 });
+  initMetrics();
+  const app = Fastify({ loggerInstance: appLogger, trustProxy: true, bodyLimit: 1_000_000 });
 
   /* ── Error Handler (set early; last registration wins) ───────────── */
 
@@ -100,7 +102,24 @@ export async function buildApp(): Promise<FastifyInstance> {
   });
   await app.register(swaggerUi, { routePrefix: "/docs" });
 
-  /* ── Health & Info ───────────────────────────────────────────────── */
+  /* ── Request instrumentation ─────────────────────────────────────── */
+
+  app.addHook("onResponse", (_req, reply, done) => {
+    if (httpRequestsTotal && httpRequestDuration) {
+      const route = reply.request.routeOptions?.url ?? "unknown";
+      const method = reply.request.method;
+      const status = String(reply.statusCode);
+
+      httpRequestsTotal.inc({ method, route, status });
+      httpRequestDuration.observe(
+        { method, route, status },
+        reply.elapsedTime / 1000,
+      );
+    }
+    done();
+  });
+
+  /* ── Health, Metrics & Info ──────────────────────────────────────── */
 
   app.get("/health", async () => {
     let dbStatus = "ok";
@@ -110,13 +129,23 @@ export async function buildApp(): Promise<FastifyInstance> {
       dbStatus = "error";
     }
 
+    const registry = getRegistry();
+
     return {
       status: dbStatus === "ok" ? "ok" : "degraded",
       ts: Date.now(),
       uptime: process.uptime(),
       database: dbStatus,
+      metrics: registry ? "enabled" : "disabled",
     };
   });
+
+  if (env.PROMETHEUS_ENABLED) {
+    app.get("/metrics", async (_req, reply) => {
+      reply.header("Content-Type", getRegistry()?.contentType ?? "text/plain");
+      return metricsText();
+    });
+  }
 
   app.get("/", async () => ({
     name: "UMIRA API",

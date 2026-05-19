@@ -19,6 +19,7 @@ const Env = z.object({
   LOG_LEVEL: z.string().default("info"),
   SENTRY_DSN: z.string().url().optional(),
   SENTRY_ENVIRONMENT: z.string().optional(),
+  PROMETHEUS_ENABLED: z.coerce.boolean().default(false),
 });
 
 export const env = Env.parse(process.env);
