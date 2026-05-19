@@ -11,7 +11,9 @@ process.env.JWT_EXPIRES_IN = "1h";
 process.env.AI_PROVIDER = "mock";
 process.env.LOG_LEVEL = "silent";
 process.env.CORS_ORIGINS = "http://localhost:8080";
-process.env.RATE_LIMIT_MAX = "1000";
+process.env.RATE_LIMIT_MAX_ANON = "1000";
+process.env.RATE_LIMIT_MAX_FREE = "1000";
+process.env.RATE_LIMIT_MAX_PRO = "2000";
 process.env.RATE_LIMIT_WINDOW = "60000";
 process.env.PROMETHEUS_ENABLED = "false";
 
@@ -35,9 +37,16 @@ function mockModel() {
   };
 }
 
+const defaultUser = {
+  id: "test_user_id",
+  email: "test@umira.app",
+  tier: "free",
+  deletedAt: null,
+};
+
 vi.mock("../db/prisma.js", () => ({
   prisma: {
-    user: mockModel(),
+    user: { ...mockModel(), findUnique: vi.fn().mockResolvedValue(defaultUser) },
     userPreference: mockModel(),
     task: mockModel(),
     microtask: mockModel(),

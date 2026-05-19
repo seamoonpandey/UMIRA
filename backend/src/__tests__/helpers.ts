@@ -31,8 +31,9 @@ export function injectAuth(
   app: FastifyInstance,
   userId = "test_user_id",
   email = "test@umira.app",
+  tier = "free",
 ) {
-  const token = app.jwt.sign({ id: userId, email });
+  const token = app.jwt.sign({ id: userId, email, tier });
   return { authorization: `Bearer ${token}` };
 }
 
@@ -48,6 +49,7 @@ export const mockUser = (overrides: Record<string, unknown> = {}) => ({
   timezone: "UTC",
   consentVersion: "1.0",
   marketingOptIn: false,
+  tier: "free",
   createdAt: new Date("2024-01-01"),
   updatedAt: new Date("2024-01-01"),
   deletedAt: null,

@@ -13,6 +13,7 @@ model User {
   passwordHash     String
   locale           String   @default("en")
   timezone         String   @default("UTC")
+  tier             String   @default("free")
   consentVersion   String   @default("1.0")
   marketingOptIn   Boolean  @default(false)
   createdAt        DateTime @default(now())

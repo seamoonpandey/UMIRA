@@ -11,7 +11,7 @@ import { env } from "./config/env.js";
 import { logger as appLogger } from "./config/logger.js";
 import { initMetrics, getRegistry, metricsText, httpRequestsTotal, httpRequestDuration } from "./config/metrics.js";
 import { registerJwt } from "./auth/jwt.js";
-import { HttpError } from "./utils/errors.js";
+import { HttpError, tooManyRequests } from "./utils/errors.js";
 import { prisma } from "./db/prisma.js";
 
 import userRoutes from "./modules/users/users.routes.js";
@@ -59,6 +59,21 @@ export async function buildApp(): Promise<FastifyInstance> {
       .send({ error: "internal_error" });
   });
 
+  /* ── Parse JWT before rate-limit (key + tier) ───────────────────── */
+
+  app.addHook("onRequest", async (req) => {
+    const header = req.headers.authorization;
+    if (!header?.startsWith("Bearer ")) return;
+    try {
+      const decoded = app.jwt.decode(header.slice(7));
+      if (decoded && typeof decoded === "object" && "id" in decoded) {
+        req.user = decoded as any;
+      }
+    } catch {
+      // invalid token — continue as anonymous for rate-limiting purposes
+    }
+  });
+
   /* ── Security ────────────────────────────────────────────────────── */
 
   await app.register(helmet, {
@@ -80,7 +95,13 @@ export async function buildApp(): Promise<FastifyInstance> {
   });
 
   await app.register(rateLimit, {
-    max: env.RATE_LIMIT_MAX,
+    keyGenerator: (req) => req.user?.id ?? req.ip,
+    max: (req) => {
+      const tier = (req.user as any)?.tier ?? "anon";
+      if (tier === "pro") return env.RATE_LIMIT_MAX_PRO;
+      if (tier === "free") return env.RATE_LIMIT_MAX_FREE;
+      return env.RATE_LIMIT_MAX_ANON;
+    },
     timeWindow: env.RATE_LIMIT_WINDOW,
   });
 
