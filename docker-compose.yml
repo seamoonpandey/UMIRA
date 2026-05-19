@@ -33,6 +33,7 @@ services:
 
   backend:
     build: ./backend
+    image: ${BACKEND_IMAGE:-umira-backend}
     container_name: umira_backend
     restart: unless-stopped
     depends_on:

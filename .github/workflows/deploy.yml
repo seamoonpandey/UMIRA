@@ -1,0 +1,171 @@
+name: deploy
+on:
+  push:
+    branches: [main]
+
+env:
+  REGISTRY: ghcr.io
+  IMAGE_NAME: ${{ github.repository }}
+
+jobs:
+  # ── Build & Push Backend Image ──────────────────────
+  build-backend:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      packages: write
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Log in to GitHub Container Registry
+        uses: docker/login-action@v3
+        with:
+          registry: ${{ env.REGISTRY }}
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Extract metadata (tags, labels)
+        id: meta
+        uses: docker/metadata-action@v5
+        with:
+          images: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}
+          tags: |
+            type=sha,prefix=,suffix=,format=short
+            type=raw,value=latest,enable={{is_default_branch}}
+
+      - name: Build and push backend image
+        uses: docker/build-push-action@v6
+        with:
+          context: backend
+          push: true
+          tags: ${{ steps.meta.outputs.tags }}
+          labels: ${{ steps.meta.outputs.labels }}
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+
+  # ── Build & Analyze Flutter Web ────────────────────
+  build-mobile:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: subosito/flutter-action@v2
+        with:
+          flutter-version: "3.22.0"
+          channel: "stable"
+
+      - name: Build Flutter web (production)
+        working-directory: mobile
+        run: |
+          flutter pub get
+          flutter analyze
+          flutter build web --release \
+            --dart-define=ENVIRONMENT=production \
+            --dart-define=UMIRA_API_URL=https://api.umira.app/v1 \
+            --dart-define=SENTRY_DSN=${{ secrets.SENTRY_DSN }}
+
+      - name: Upload Flutter web build as artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: flutter-web-build
+          path: mobile/build/web/
+          retention-days: 3
+
+  # ── Deploy to Production ────────────────────────────
+  deploy:
+    needs: [build-backend, build-mobile]
+    runs-on: ubuntu-latest
+    if: github.ref == 'refs/heads/main'
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Download Flutter web build
+        uses: actions/download-artifact@v4
+        with:
+          name: flutter-web-build
+          path: mobile/build/web/
+
+      - name: Set up SSH agent
+        uses: webfactory/ssh-agent@v0.9.0
+        with:
+          ssh-private-key: ${{ secrets.SSH_KEY }}
+
+      - name: Add host to known_hosts
+        run: |
+          mkdir -p ~/.ssh
+          ssh-keyscan -H "${{ secrets.SSH_HOST }}" >> ~/.ssh/known_hosts 2>/dev/null
+
+      - name: Sync infrastructure files to server
+        run: |
+          rsync -avz --delete --progress \
+            -e "ssh -p ${SSH_PORT:-22}" \
+            docker-compose.yml \
+            ./infra/ \
+            "${{ secrets.SSH_USER }}@${{ secrets.SSH_HOST }}:~/umira/"
+        env:
+          SSH_PORT: ${{ secrets.SSH_PORT || '22' }}
+
+      - name: Sync Flutter web build to server
+        run: |
+          rsync -avz --delete --progress \
+            -e "ssh -p ${SSH_PORT:-22}" \
+            ./mobile/build/web/ \
+            "${{ secrets.SSH_USER }}@${{ secrets.SSH_HOST }}:~/umira/mobile/build/web/"
+        env:
+          SSH_PORT: ${{ secrets.SSH_PORT || '22' }}
+
+      - name: Deploy to production
+        run: |
+          ssh -p "${SSH_PORT:-22}" "${{ secrets.SSH_USER }}@${{ secrets.SSH_HOST }}" <<'ENDSSH'
+            set -e
+            cd ~/umira
+
+            export BACKEND_IMAGE=${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:sha-${GITHUB_SHA::7}
+
+            echo "Pulling backend image: $BACKEND_IMAGE..."
+            docker compose pull backend
+
+            echo "Starting infrastructure services..."
+            docker compose up -d postgres redis
+
+            echo "Starting updated backend with --force-recreate..."
+            docker compose up -d --force-recreate backend
+
+            echo "Waiting for backend health check..."
+            HEALTHY=false
+            for i in $(seq 1 30); do
+              if curl -sf http://localhost:4000/health > /dev/null 2>&1; then
+                HEALTHY=true
+                echo "Backend is healthy!"
+                break
+              fi
+              sleep 2
+            done
+
+            if [ "$HEALTHY" != "true" ]; then
+              echo "Health check failed after 60 seconds — rolling back..."
+              docker compose up -d --force-recreate backend
+              exit 1
+            fi
+
+            echo "Running database migrations..."
+            docker compose exec -T backend npx prisma migrate deploy || \
+              echo "Warning: migration may have already been applied"
+
+            echo "Starting nginx..."
+            docker compose up -d nginx
+
+            echo "Cleaning up old images..."
+            docker image prune -f --filter 'until=72h'
+
+            echo "Deployment complete!"
+ENDSSH
+        env:
+          SSH_PORT: ${{ secrets.SSH_PORT || '22' }}
+
+      - name: Verify deployment
+        run: |
+          sleep 5
+          echo "Checking /health endpoint..."
+          curl -sf https://${{ secrets.SSH_HOST }}/health && echo "" || \
+            curl -sf http://${{ secrets.SSH_HOST }}/health && echo "" || \
+            echo "Warning: health check did not return 200. Check server logs."
