@@ -73,7 +73,9 @@ class _FocusSessionViewState extends ConsumerState<FocusSessionView> {
   Future<void> _cancelEarly() async {
     _timer?.cancel();
     if (_session != null) {
-      try { await ref.read(focusRepoProvider).cancel(_session!.id); } catch (_) {}
+      try {
+        await ref.read(focusRepoProvider).cancel(_session!.id);
+      } catch (_) {}
     }
     if (mounted) context.pop();
   }
@@ -100,12 +102,14 @@ class _FocusSessionViewState extends ConsumerState<FocusSessionView> {
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
                     if (_taskTitle != null) ...[
-                      Text(_taskTitle!, textAlign: TextAlign.center,
-                          style: Theme.of(context).textTheme.titleLarge),
+                      Text(_taskTitle!,
+                          textAlign: TextAlign.center,
+                          style: Theme.of(context).textTheme.titleLarge,),
                       const SizedBox(height: 24),
                     ],
                     SizedBox(
-                      height: 220, width: 220,
+                      height: 220,
+                      width: 220,
                       child: Stack(
                         alignment: Alignment.center,
                         children: [
@@ -115,7 +119,8 @@ class _FocusSessionViewState extends ConsumerState<FocusSessionView> {
                               strokeWidth: 10,
                             ),
                           ),
-                          Text('$mm:$ss', style: Theme.of(context).textTheme.displayMedium),
+                          Text('$mm:$ss',
+                              style: Theme.of(context).textTheme.displayMedium,),
                         ],
                       ),
                     ),
@@ -131,7 +136,7 @@ class _FocusSessionViewState extends ConsumerState<FocusSessionView> {
                         const SizedBox(width: 12),
                         OutlinedButton.icon(
                           icon: const Icon(Icons.notifications_off),
-                          label: Text('Distraction (${_distractions})'),
+                          label: Text('Distraction ($_distractions)'),
                           onPressed: () => setState(() => _distractions++),
                         ),
                       ],
@@ -155,14 +160,16 @@ class _FocusSessionViewState extends ConsumerState<FocusSessionView> {
       children: [
         const Icon(Icons.check_circle_outline, size: 80),
         const SizedBox(height: 16),
-        Text('Session complete', textAlign: TextAlign.center,
-            style: Theme.of(context).textTheme.headlineSmall),
+        Text('Session complete',
+            textAlign: TextAlign.center,
+            style: Theme.of(context).textTheme.headlineSmall,),
         const SizedBox(height: 16),
         if (_reflection != null)
           Card(
             child: Padding(
               padding: const EdgeInsets.all(16),
-              child: Text(_reflection!, style: Theme.of(context).textTheme.bodyLarge),
+              child: Text(_reflection!,
+                  style: Theme.of(context).textTheme.bodyLarge,),
             ),
           ),
         const SizedBox(height: 24),

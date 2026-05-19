@@ -32,19 +32,26 @@ class HomeView extends ConsumerWidget {
           padding: const EdgeInsets.all(16),
           children: [
             Text('Your next best step',
-                style: Theme.of(context).textTheme.titleMedium),
+                style: Theme.of(context).textTheme.titleMedium,),
             const SizedBox(height: 8),
             tasks.when(
-              loading: () => const Padding(padding: EdgeInsets.all(24), child: Center(child: CircularProgressIndicator())),
+              loading: () => const Padding(
+                  padding: EdgeInsets.all(24),
+                  child: Center(child: CircularProgressIndicator()),),
               error: (e, _) => Text('Could not load tasks: $e'),
               data: (list) {
-                final next = list.expand((t) => t.microtasks.where((m) => m.status == 'pending')).cast<dynamic>().firstOrNull;
+                final next = list
+                    .expand(
+                        (t) => t.microtasks.where((m) => m.status == 'pending'),)
+                    .cast<dynamic>()
+                    .firstOrNull;
                 if (next == null) {
                   return UmiraCard(
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        const Text('Nothing queued. Add something small to start.'),
+                        const Text(
+                            'Nothing queued. Add something small to start.',),
                         const SizedBox(height: 12),
                         FilledButton.icon(
                           icon: const Icon(Icons.add),
@@ -56,22 +63,25 @@ class HomeView extends ConsumerWidget {
                   );
                 }
                 return UmiraCard(
-                  onTap: () => context.push('/focus', extra: {'taskTitle': next.label}),
+                  onTap: () =>
+                      context.push('/focus', extra: {'taskTitle': next.label}),
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      Text(next.label, style: Theme.of(context).textTheme.titleLarge),
+                      Text(next.label,
+                          style: Theme.of(context).textTheme.titleLarge,),
                       const SizedBox(height: 8),
                       Text('Estimated ${next.estimatedMinutes} min',
-                          style: Theme.of(context).textTheme.bodyMedium),
+                          style: Theme.of(context).textTheme.bodyMedium,),
                       const SizedBox(height: 16),
                       Row(children: [
                         FilledButton.icon(
                           icon: const Icon(Icons.play_arrow),
                           label: const Text('Start focus'),
-                          onPressed: () => context.push('/focus', extra: {'taskTitle': next.label}),
+                          onPressed: () => context
+                              .push('/focus', extra: {'taskTitle': next.label}),
                         ),
-                      ]),
+                      ],),
                     ],
                   ),
                 );
@@ -89,14 +99,16 @@ class HomeView extends ConsumerWidget {
                 if (list.isEmpty) return const Text('No tasks yet.');
                 return Column(
                   children: list.take(5).map((t) {
-                    final done = t.microtasks.where((m) => m.status == 'done').length;
+                    final done =
+                        t.microtasks.where((m) => m.status == 'done').length;
                     final total = t.microtasks.length;
                     return UmiraCard(
                       onTap: () => context.push('/tasks/${t.id}'),
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          Text(t.title, style: Theme.of(context).textTheme.titleMedium),
+                          Text(t.title,
+                              style: Theme.of(context).textTheme.titleMedium,),
                           const SizedBox(height: 4),
                           Text('$done / $total steps done'),
                         ],
@@ -138,10 +150,11 @@ class HomeView extends ConsumerWidget {
                   children: [
                     Icon(a.icon, size: 28),
                     const SizedBox(width: 12),
-                    Text(a.label, style: Theme.of(context).textTheme.titleMedium),
+                    Text(a.label,
+                        style: Theme.of(context).textTheme.titleMedium,),
                   ],
                 ),
-              ))
+              ),)
           .toList(),
     );
   }

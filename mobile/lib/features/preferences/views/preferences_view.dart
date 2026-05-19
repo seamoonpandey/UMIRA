@@ -15,7 +15,9 @@ class PreferencesView extends ConsumerWidget {
     final remote = ref.read(preferencesRepoProvider);
 
     Future<void> sync(Map<String, dynamic> data) async {
-      try { await remote.patch(data); } catch (_) {/* offline-safe */}
+      try {
+        await remote.patch(data);
+      } catch (_) {/* offline-safe */}
     }
 
     return Scaffold(
@@ -36,7 +38,9 @@ class PreferencesView extends ConsumerWidget {
           ListTile(
             title: const Text('Text size'),
             subtitle: Slider(
-              min: 0.8, max: 1.6, divisions: 8,
+              min: 0.8,
+              max: 1.6,
+              divisions: 8,
               value: prefs.fontScale,
               label: prefs.fontScale.toStringAsFixed(2),
               onChanged: (v) {
@@ -49,14 +53,16 @@ class PreferencesView extends ConsumerWidget {
             title: const Text('Line spacing'),
             subtitle: Wrap(
               spacing: 8,
-              children: ['normal', 'wide', 'extra-wide'].map((m) => ChoiceChip(
-                label: Text(m),
-                selected: prefs.spacingMode == m,
-                onSelected: (_) {
-                  notifier.update((s) => s.copyWith(spacingMode: m));
-                  sync({'spacingMode': m});
-                },
-              )).toList(),
+              children: ['normal', 'wide', 'extra-wide']
+                  .map((m) => ChoiceChip(
+                        label: Text(m),
+                        selected: prefs.spacingMode == m,
+                        onSelected: (_) {
+                          notifier.update((s) => s.copyWith(spacingMode: m));
+                          sync({'spacingMode': m});
+                        },
+                      ),)
+                  .toList(),
             ),
           ),
           SwitchListTile(
@@ -72,21 +78,26 @@ class PreferencesView extends ConsumerWidget {
             title: const Text('Default session length'),
             subtitle: Wrap(
               spacing: 8,
-              children: [10, 15, 20, 25].map((m) => ChoiceChip(
-                label: Text('$m min'),
-                selected: prefs.sessionLengthDefault == m,
-                onSelected: (_) {
-                  notifier.update((s) => s.copyWith(sessionLengthDefault: m));
-                  sync({'sessionLengthDefault': m});
-                },
-              )).toList(),
+              children: [10, 15, 20, 25]
+                  .map((m) => ChoiceChip(
+                        label: Text('$m min'),
+                        selected: prefs.sessionLengthDefault == m,
+                        onSelected: (_) {
+                          notifier.update(
+                              (s) => s.copyWith(sessionLengthDefault: m),);
+                          sync({'sessionLengthDefault': m});
+                        },
+                      ),)
+                  .toList(),
             ),
           ),
           _section('Read-aloud voice'),
           ListTile(
             title: const Text('Speech rate'),
             subtitle: Slider(
-              min: 0.5, max: 2.0, divisions: 15,
+              min: 0.5,
+              max: 2.0,
+              divisions: 15,
               value: prefs.ttsRate,
               onChanged: (v) {
                 notifier.update((s) => s.copyWith(ttsRate: v));
@@ -97,7 +108,9 @@ class PreferencesView extends ConsumerWidget {
           ListTile(
             title: const Text('Pitch'),
             subtitle: Slider(
-              min: 0.5, max: 2.0, divisions: 15,
+              min: 0.5,
+              max: 2.0,
+              divisions: 15,
               value: prefs.ttsPitch,
               onChanged: (v) {
                 notifier.update((s) => s.copyWith(ttsPitch: v));
@@ -149,7 +162,9 @@ class PreferencesView extends ConsumerWidget {
         title: const Text('Export your data'),
         content: const Text('Download a complete JSON copy of your data.'),
         actions: [
-          TextButton(onPressed: () => Navigator.pop(context), child: const Text('Cancel')),
+          TextButton(
+              onPressed: () => Navigator.pop(context),
+              child: const Text('Cancel'),),
           FilledButton(
             onPressed: () async {
               Navigator.pop(context);
@@ -157,7 +172,9 @@ class PreferencesView extends ConsumerWidget {
                 await ref.read(preferencesRepoProvider).exportData();
                 if (context.mounted) {
                   ScaffoldMessenger.of(context).showSnackBar(
-                    const SnackBar(content: Text('Data export started — check your downloads.')),
+                    const SnackBar(
+                        content: Text(
+                            'Data export started — check your downloads.',),),
                   );
                 }
               } catch (e) {
@@ -180,9 +197,12 @@ class PreferencesView extends ConsumerWidget {
       context: context,
       builder: (_) => AlertDialog(
         title: const Text('Delete account?'),
-        content: const Text('This permanently deletes your account, tasks, and reading sessions.'),
+        content: const Text(
+            'This permanently deletes your account, tasks, and reading sessions.',),
         actions: [
-          TextButton(onPressed: () => Navigator.pop(context), child: const Text('Cancel')),
+          TextButton(
+              onPressed: () => Navigator.pop(context),
+              child: const Text('Cancel'),),
           FilledButton(
             style: FilledButton.styleFrom(backgroundColor: Colors.red),
             onPressed: () async {

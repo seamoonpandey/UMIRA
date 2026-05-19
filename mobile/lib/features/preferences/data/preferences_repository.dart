@@ -1,7 +1,8 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../core/network/api_client.dart';
 
-final preferencesRepoProvider = Provider((ref) => PreferencesRepository(ref.watch(apiClientProvider)));
+final preferencesRepoProvider =
+    Provider((ref) => PreferencesRepository(ref.watch(apiClientProvider)));
 
 class PreferencesRepository {
   final ApiClient _api;

@@ -18,19 +18,25 @@ class AnalyticsView extends ConsumerWidget {
           padding: const EdgeInsets.all(16),
           children: [
             _stat(context, 'Tasks created', '${data['tasks_created'] ?? 0}'),
-            _stat(context, 'Steps completed', '${data['microtasks_done'] ?? 0}'),
+            _stat(
+                context, 'Steps completed', '${data['microtasks_done'] ?? 0}',),
             _stat(context, 'Focus sessions', '${data['focus_completed'] ?? 0}'),
-            _stat(context, 'Focused minutes', '${data['focus_total_minutes'] ?? 0}'),
-            _stat(context, 'Reading sessions', '${data['reading_sessions'] ?? 0}'),
+            _stat(context, 'Focused minutes',
+                '${data['focus_total_minutes'] ?? 0}',),
+            _stat(context, 'Reading sessions',
+                '${data['reading_sessions'] ?? 0}',),
             const SizedBox(height: 16),
             UmiraCard(
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Text('Time estimation', style: Theme.of(context).textTheme.titleMedium),
+                  Text('Time estimation',
+                      style: Theme.of(context).textTheme.titleMedium,),
                   const SizedBox(height: 8),
-                  Text('Avg planned: ${(data['estimation_accuracy']?['avg_planned_minutes'] ?? 0)} min'),
-                  Text('Avg actual:  ${(data['estimation_accuracy']?['avg_actual_minutes'] ?? 0)} min'),
+                  Text(
+                      'Avg planned: ${(data['estimation_accuracy']?['avg_planned_minutes'] ?? 0)} min',),
+                  Text(
+                      'Avg actual:  ${(data['estimation_accuracy']?['avg_actual_minutes'] ?? 0)} min',),
                   const SizedBox(height: 8),
                   const Text('This is a personal trend, not a judgement.'),
                 ],

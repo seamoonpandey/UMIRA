@@ -51,7 +51,8 @@ class LocalPrefs {
         useDyslexiaFont: j['useDyslexiaFont'] as bool? ?? false,
         reducedMotion: j['reducedMotion'] as bool? ?? false,
         spacingMode: j['spacingMode'] as String? ?? 'normal',
-        sessionLengthDefault: (j['sessionLengthDefault'] as num?)?.toInt() ?? 15,
+        sessionLengthDefault:
+            (j['sessionLengthDefault'] as num?)?.toInt() ?? 15,
         ttsRate: (j['ttsRate'] as num?)?.toDouble() ?? 1.0,
         ttsPitch: (j['ttsPitch'] as num?)?.toDouble() ?? 1.0,
       );

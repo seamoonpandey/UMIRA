@@ -37,7 +37,8 @@ final appRouterProvider = Provider<GoRouter>((ref) {
       GoRoute(path: '/tasks/new', builder: (_, __) => const NewTaskView()),
       GoRoute(
         path: '/tasks/:id',
-        builder: (_, state) => TaskDetailView(taskId: state.pathParameters['id']!),
+        builder: (_, state) =>
+            TaskDetailView(taskId: state.pathParameters['id']!),
       ),
       GoRoute(path: '/reading', builder: (_, __) => const ReadingInputView()),
       GoRoute(
@@ -49,7 +50,8 @@ final appRouterProvider = Provider<GoRouter>((ref) {
         path: '/focus/run',
         builder: (_, state) => FocusSessionView(args: state.extra as Map),
       ),
-      GoRoute(path: '/preferences', builder: (_, __) => const PreferencesView()),
+      GoRoute(
+          path: '/preferences', builder: (_, __) => const PreferencesView(),),
       GoRoute(path: '/analytics', builder: (_, __) => const AnalyticsView()),
     ],
   );

@@ -71,12 +71,17 @@ class _NewTaskViewState extends ConsumerState<NewTaskView> {
       setState(() => _error = 'Please add a short title.');
       return;
     }
-    setState(() { _busy = true; _error = null; });
+    setState(() {
+      _busy = true;
+      _error = null;
+    });
     try {
       final repo = ref.read(tasksRepoProvider);
       final t = await repo.create(title: _title.text.trim());
-      final goal = _goal.text.trim().isEmpty ? _title.text.trim() : _goal.text.trim();
-      await repo.generateMicrotasks(t.id, goal: goal, extraSimplify: _extraSimplify);
+      final goal =
+          _goal.text.trim().isEmpty ? _title.text.trim() : _goal.text.trim();
+      await repo.generateMicrotasks(t.id,
+          goal: goal, extraSimplify: _extraSimplify,);
       ref.invalidate(tasksListProvider);
       if (mounted) context.go('/tasks/${t.id}');
     } catch (e) {

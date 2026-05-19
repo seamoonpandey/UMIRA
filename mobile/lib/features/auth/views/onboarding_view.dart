@@ -16,7 +16,7 @@ class OnboardingView extends StatelessWidget {
             children: [
               const SizedBox(height: 24),
               Text('Welcome to UMIRA',
-                  style: Theme.of(context).textTheme.headlineMedium),
+                  style: Theme.of(context).textTheme.headlineMedium,),
               const SizedBox(height: 12),
               Text(
                 'A calm workspace built around how you think.\n\n'

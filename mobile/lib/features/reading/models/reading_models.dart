@@ -20,10 +20,15 @@ class SimplifyResult {
   final String summary;
   final List<TextChunk> chunks;
   final List<KeyTerm> keyTerms;
-  SimplifyResult({required this.summary, required this.chunks, required this.keyTerms});
+  SimplifyResult(
+      {required this.summary, required this.chunks, required this.keyTerms,});
   factory SimplifyResult.fromJson(Map<String, dynamic> j) => SimplifyResult(
         summary: j['summary'] as String,
-        chunks: ((j['chunks'] as List?) ?? []).map((e) => TextChunk.fromJson(e as Map<String, dynamic>)).toList(),
-        keyTerms: ((j['key_terms'] as List?) ?? []).map((e) => KeyTerm.fromJson(e as Map<String, dynamic>)).toList(),
+        chunks: ((j['chunks'] as List?) ?? [])
+            .map((e) => TextChunk.fromJson(e as Map<String, dynamic>))
+            .toList(),
+        keyTerms: ((j['key_terms'] as List?) ?? [])
+            .map((e) => KeyTerm.fromJson(e as Map<String, dynamic>))
+            .toList(),
       );
 }

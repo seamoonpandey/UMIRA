@@ -37,7 +37,10 @@ class _SignUpViewState extends ConsumerState<SignUpView> {
             children: [
               UmiraTextField(controller: _email, label: 'Email'),
               const SizedBox(height: 16),
-              UmiraTextField(controller: _password, label: 'Password (8+ chars)', obscure: true),
+              UmiraTextField(
+                  controller: _password,
+                  label: 'Password (8+ chars)',
+                  obscure: true,),
               const SizedBox(height: 16),
               CheckboxListTile(
                 value: _consent,
@@ -74,9 +77,14 @@ class _SignUpViewState extends ConsumerState<SignUpView> {
       setState(() => _error = 'Password must be at least 8 characters.');
       return;
     }
-    setState(() { _busy = true; _error = null; });
+    setState(() {
+      _busy = true;
+      _error = null;
+    });
     try {
-      await ref.read(authStateProvider.notifier).signUp(_email.text.trim(), _password.text);
+      await ref
+          .read(authStateProvider.notifier)
+          .signUp(_email.text.trim(), _password.text);
       if (mounted) context.go('/');
     } catch (e) {
       setState(() => _error = 'Sign-up failed. Try a different email.');

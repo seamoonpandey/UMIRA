@@ -11,6 +11,7 @@ class SecureStorage {
   );
 
   Future<String?> readToken() => _storage.read(key: _tokenKey);
-  Future<void> writeToken(String token) => _storage.write(key: _tokenKey, value: token);
+  Future<void> writeToken(String token) =>
+      _storage.write(key: _tokenKey, value: token);
   Future<void> deleteToken() => _storage.delete(key: _tokenKey);
 }

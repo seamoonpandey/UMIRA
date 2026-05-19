@@ -4,7 +4,9 @@ import 'package:shared_preferences/shared_preferences.dart';
 import '../models/preferences_models.dart';
 
 class LocalPrefsNotifier extends StateNotifier<LocalPrefs> {
-  LocalPrefsNotifier() : super(const LocalPrefs()) { _load(); }
+  LocalPrefsNotifier() : super(const LocalPrefs()) {
+    _load();
+  }
 
   static const _key = 'umira_local_prefs';
 
@@ -12,7 +14,9 @@ class LocalPrefsNotifier extends StateNotifier<LocalPrefs> {
     final sp = await SharedPreferences.getInstance();
     final raw = sp.getString(_key);
     if (raw != null) {
-      try { state = LocalPrefs.fromJson(jsonDecode(raw) as Map<String, dynamic>); } catch (_) {}
+      try {
+        state = LocalPrefs.fromJson(jsonDecode(raw) as Map<String, dynamic>);
+      } catch (_) {}
     }
   }
 
@@ -23,4 +27,6 @@ class LocalPrefsNotifier extends StateNotifier<LocalPrefs> {
   }
 }
 
-final localPrefsProvider = StateNotifierProvider<LocalPrefsNotifier, LocalPrefs>((_) => LocalPrefsNotifier());
+final localPrefsProvider =
+    StateNotifierProvider<LocalPrefsNotifier, LocalPrefs>(
+        (_) => LocalPrefsNotifier(),);

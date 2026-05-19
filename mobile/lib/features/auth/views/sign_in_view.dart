@@ -34,9 +34,16 @@ class _SignInViewState extends ConsumerState<SignInView> {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
-              UmiraTextField(controller: _email, label: 'Email', autofillHints: const [AutofillHints.email]),
+              UmiraTextField(
+                  controller: _email,
+                  label: 'Email',
+                  autofillHints: const [AutofillHints.email],),
               const SizedBox(height: 16),
-              UmiraTextField(controller: _password, label: 'Password', obscure: true, autofillHints: const [AutofillHints.password]),
+              UmiraTextField(
+                  controller: _password,
+                  label: 'Password',
+                  obscure: true,
+                  autofillHints: const [AutofillHints.password],),
               if (_error != null) ...[
                 const SizedBox(height: 12),
                 Text(_error!, style: const TextStyle(color: Colors.red)),
@@ -60,9 +67,14 @@ class _SignInViewState extends ConsumerState<SignInView> {
   }
 
   Future<void> _submit() async {
-    setState(() { _busy = true; _error = null; });
+    setState(() {
+      _busy = true;
+      _error = null;
+    });
     try {
-      await ref.read(authStateProvider.notifier).signIn(_email.text.trim(), _password.text);
+      await ref
+          .read(authStateProvider.notifier)
+          .signIn(_email.text.trim(), _password.text);
       if (mounted) context.go('/');
     } catch (e) {
       setState(() => _error = 'Sign-in failed. Check your email and password.');

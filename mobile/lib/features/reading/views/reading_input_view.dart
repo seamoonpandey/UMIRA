@@ -33,7 +33,7 @@ class _ReadingInputViewState extends ConsumerState<ReadingInputView> {
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
               Text('Paste text to simplify and read aloud.',
-                  style: Theme.of(context).textTheme.bodyLarge),
+                  style: Theme.of(context).textTheme.bodyLarge,),
               const SizedBox(height: 12),
               Expanded(
                 child: UmiraTextField(
@@ -45,11 +45,13 @@ class _ReadingInputViewState extends ConsumerState<ReadingInputView> {
               const SizedBox(height: 12),
               Wrap(
                 spacing: 8,
-                children: ['light', 'medium', 'high'].map((l) => ChoiceChip(
-                  label: Text(l),
-                  selected: _level == l,
-                  onSelected: (_) => setState(() => _level = l),
-                )).toList(),
+                children: ['light', 'medium', 'high']
+                    .map((l) => ChoiceChip(
+                          label: Text(l),
+                          selected: _level == l,
+                          onSelected: (_) => setState(() => _level = l),
+                        ),)
+                    .toList(),
               ),
               const SizedBox(height: 12),
               UmiraButton(
@@ -59,7 +61,9 @@ class _ReadingInputViewState extends ConsumerState<ReadingInputView> {
                 onPressed: () {
                   if (_text.text.trim().length < 20) {
                     ScaffoldMessenger.of(context).showSnackBar(
-                      const SnackBar(content: Text('Please paste at least 20 characters.')),
+                      const SnackBar(
+                          content:
+                              Text('Please paste at least 20 characters.'),),
                     );
                     return;
                   }
@@ -67,7 +71,7 @@ class _ReadingInputViewState extends ConsumerState<ReadingInputView> {
                     'text': _text.text,
                     'level': _level,
                     'useDyslexiaFont': prefs.useDyslexiaFont,
-                  });
+                  },);
                 },
               ),
             ],

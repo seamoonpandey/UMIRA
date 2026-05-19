@@ -6,7 +6,8 @@ final tasksListProvider = FutureProvider.autoDispose<List<Task>>((ref) async {
   return ref.watch(tasksRepoProvider).list();
 });
 
-final taskDetailProvider = FutureProvider.autoDispose.family<Task?, String>((ref, id) async {
+final taskDetailProvider =
+    FutureProvider.autoDispose.family<Task?, String>((ref, id) async {
   final list = await ref.watch(tasksRepoProvider).list();
   try {
     return list.firstWhere((t) => t.id == id);

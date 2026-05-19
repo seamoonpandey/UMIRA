@@ -22,7 +22,8 @@ class TasksListView extends ConsumerWidget {
                 itemCount: list.length,
                 itemBuilder: (_, i) {
                   final t = list[i];
-                  final done = t.microtasks.where((m) => m.status == 'done').length;
+                  final done =
+                      t.microtasks.where((m) => m.status == 'done').length;
                   final total = t.microtasks.length;
                   return Padding(
                     padding: const EdgeInsets.only(bottom: 12),
@@ -31,7 +32,8 @@ class TasksListView extends ConsumerWidget {
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          Text(t.title, style: Theme.of(context).textTheme.titleMedium),
+                          Text(t.title,
+                              style: Theme.of(context).textTheme.titleMedium,),
                           const SizedBox(height: 6),
                           LinearProgressIndicator(
                             value: total == 0 ? 0 : done / total,

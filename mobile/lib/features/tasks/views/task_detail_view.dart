@@ -17,9 +17,8 @@ class TaskDetailView extends ConsumerWidget {
       body: task.when(
         loading: () => const Center(child: CircularProgressIndicator()),
         error: (e, _) => Center(child: Text('Error: $e')),
-        data: (t) => t == null
-            ? const Center(child: Text('Not found'))
-            : _Body(task: t),
+        data: (t) =>
+            t == null ? const Center(child: Text('Not found')) : _Body(task: t),
       ),
     );
   }
@@ -56,7 +55,8 @@ class _BodyState extends ConsumerState<_Body> {
       children: [
         Text(t.title, style: Theme.of(context).textTheme.headlineSmall),
         const SizedBox(height: 8),
-        Text('${t.microtasks.where((m) => m.status == 'done').length} of ${t.microtasks.length} done'),
+        Text(
+            '${t.microtasks.where((m) => m.status == 'done').length} of ${t.microtasks.length} done',),
         const Divider(height: 32),
         ...t.microtasks.map((m) => Card(
               margin: const EdgeInsets.only(bottom: 8),
@@ -79,24 +79,28 @@ class _BodyState extends ConsumerState<_Body> {
                         onPressed: () => context.push('/focus', extra: {
                           'taskTitle': m.label,
                           'taskId': widget.task.id,
-                        }),
+                        },),
                       )
                     : null,
               ),
-            )),
+            ),),
         const SizedBox(height: 24),
         FilledButton.icon(
           icon: const Icon(Icons.refresh),
           label: const Text('Regenerate steps'),
-          onPressed: _busy ? null : () async {
-            setState(() => _busy = true);
-            try {
-              await ref.read(tasksRepoProvider).generateMicrotasks(t.id, goal: t.title);
-              ref.invalidate(taskDetailProvider(t.id));
-            } finally {
-              if (mounted) setState(() => _busy = false);
-            }
-          },
+          onPressed: _busy
+              ? null
+              : () async {
+                  setState(() => _busy = true);
+                  try {
+                    await ref
+                        .read(tasksRepoProvider)
+                        .generateMicrotasks(t.id, goal: t.title);
+                    ref.invalidate(taskDetailProvider(t.id));
+                  } finally {
+                    if (mounted) setState(() => _busy = false);
+                  }
+                },
         ),
       ],
     );

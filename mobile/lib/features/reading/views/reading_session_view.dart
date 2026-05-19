@@ -40,7 +40,8 @@ class _ReadingSessionViewState extends ConsumerState<ReadingSessionView> {
   Widget build(BuildContext context) {
     final text = widget.payload?['text'] as String? ?? '';
     final level = widget.payload?['level'] as String? ?? 'medium';
-    final result = ref.watch(simplifyProvider(SimplifyRequest.make(text: text, level: level)));
+    final result = ref.watch(
+        simplifyProvider(SimplifyRequest.make(text: text, level: level)),);
 
     return Scaffold(
       appBar: AppBar(
@@ -57,7 +58,9 @@ class _ReadingSessionViewState extends ConsumerState<ReadingSessionView> {
         loading: () => const Center(child: CircularProgressIndicator()),
         error: (e, _) => Padding(
           padding: const EdgeInsets.all(24),
-          child: Center(child: Text('Could not simplify: $e\n\nThe original text is preserved - switch to "Original" mode.')),
+          child: Center(
+              child: Text(
+                  'Could not simplify: $e\n\nThe original text is preserved - switch to "Original" mode.',),),
         ),
         data: (data) {
           return Column(
@@ -66,11 +69,13 @@ class _ReadingSessionViewState extends ConsumerState<ReadingSessionView> {
                 padding: const EdgeInsets.all(12),
                 child: Wrap(
                   spacing: 8,
-                  children: ['original', 'simplified', 'side-by-side'].map((m) => ChoiceChip(
-                    label: Text(m),
-                    selected: _mode == m,
-                    onSelected: (_) => setState(() => _mode = m),
-                  )).toList(),
+                  children: ['original', 'simplified', 'side-by-side']
+                      .map((m) => ChoiceChip(
+                            label: Text(m),
+                            selected: _mode == m,
+                            onSelected: (_) => setState(() => _mode = m),
+                          ),)
+                      .toList(),
                 ),
               ),
               if (data.summary.isNotEmpty)
@@ -78,13 +83,17 @@ class _ReadingSessionViewState extends ConsumerState<ReadingSessionView> {
                   margin: const EdgeInsets.symmetric(horizontal: 12),
                   padding: const EdgeInsets.all(12),
                   decoration: BoxDecoration(
-                    color: Theme.of(context).colorScheme.primary.withValues(alpha: 0.1),
+                    color: Theme.of(context)
+                        .colorScheme
+                        .primary
+                        .withValues(alpha: 0.1),
                     borderRadius: BorderRadius.circular(12),
                   ),
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      Text('Quick summary', style: Theme.of(context).textTheme.titleSmall),
+                      Text('Quick summary',
+                          style: Theme.of(context).textTheme.titleSmall,),
                       const SizedBox(height: 6),
                       Text(data.summary),
                     ],
@@ -104,10 +113,17 @@ class _ReadingSessionViewState extends ConsumerState<ReadingSessionView> {
                       duration: const Duration(milliseconds: 200),
                       margin: const EdgeInsets.only(bottom: 12),
                       decoration: BoxDecoration(
-                        color: isCurrent ? Theme.of(context).colorScheme.secondary.withValues(alpha: 0.15) : null,
+                        color: isCurrent
+                            ? Theme.of(context)
+                                .colorScheme
+                                .secondary
+                                .withValues(alpha: 0.15)
+                            : null,
                         borderRadius: BorderRadius.circular(12),
                         border: isFocused
-                            ? Border.all(color: Theme.of(context).colorScheme.primary, width: 2)
+                            ? Border.all(
+                                color: Theme.of(context).colorScheme.primary,
+                                width: 2,)
                             : null,
                       ),
                       child: Opacity(
@@ -133,9 +149,14 @@ class _ReadingSessionViewState extends ConsumerState<ReadingSessionView> {
                       const SizedBox(width: 8),
                       Expanded(
                         child: FilledButton.icon(
-                          icon: Icon(_speaking ? Icons.pause : Icons.play_arrow),
+                          icon:
+                              Icon(_speaking ? Icons.pause : Icons.play_arrow),
                           label: Text(_speaking ? 'Pause' : 'Read aloud'),
-                          onPressed: () => _toggleSpeak(data.chunks.isEmpty ? '' : _readableText(data.chunks[_currentChunk].original, data.chunks[_currentChunk].simplified)),
+                          onPressed: () => _toggleSpeak(data.chunks.isEmpty
+                              ? ''
+                              : _readableText(
+                                  data.chunks[_currentChunk].original,
+                                  data.chunks[_currentChunk].simplified,),),
                         ),
                       ),
                       const SizedBox(width: 8),
@@ -175,7 +196,8 @@ class _ReadingSessionViewState extends ConsumerState<ReadingSessionView> {
                 const SizedBox(width: 12),
                 Expanded(
                   child: Text(simplified,
-                      style: TextStyle(color: Theme.of(context).colorScheme.primary)),
+                      style: TextStyle(
+                          color: Theme.of(context).colorScheme.primary,),),
                 ),
               ],
             );
@@ -186,12 +208,12 @@ class _ReadingSessionViewState extends ConsumerState<ReadingSessionView> {
               Text(simplified,
                   style: Theme.of(context).textTheme.bodyLarge?.copyWith(
                         color: Theme.of(context).colorScheme.primary,
-                      )),
+                      ),),
               const SizedBox(height: 6),
               Text(original, style: Theme.of(context).textTheme.bodySmall),
             ],
           );
-        });
+        },);
     }
   }
 

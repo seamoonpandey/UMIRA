@@ -24,7 +24,7 @@ class ApiClient {
       connectTimeout: const Duration(seconds: 20),
       receiveTimeout: const Duration(seconds: 60),
       headers: {'content-type': 'application/json'},
-    ));
+    ),);
 
     dio.interceptors.add(InterceptorsWrapper(
       onRequest: (options, handler) async {
@@ -36,12 +36,14 @@ class ApiClient {
         if (kDebugMode) debugPrint('[UMIRA API ERR] ${e.message}');
         handler.next(e);
       },
-    ));
+    ),);
   }
 
-  Future<Map<String, dynamic>> getJson(String path, {Map<String, dynamic>? query}) async {
+  Future<Map<String, dynamic>> getJson(String path,
+      {Map<String, dynamic>? query,}) async {
     try {
-      final r = await dio.get<Map<String, dynamic>>(path, queryParameters: query);
+      final r =
+          await dio.get<Map<String, dynamic>>(path, queryParameters: query);
       return r.data ?? {};
     } on DioException catch (e) {
       throw _toApi(e);
@@ -77,7 +79,9 @@ class ApiClient {
   ApiException _toApi(DioException e) {
     final code = e.response?.statusCode ?? 0;
     final data = e.response?.data;
-    final msg = (data is Map && data['error'] is String) ? data['error'] as String : e.message ?? 'network_error';
+    final msg = (data is Map && data['error'] is String)
+        ? data['error'] as String
+        : e.message ?? 'network_error';
     return ApiException(code, msg);
   }
 }

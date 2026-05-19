@@ -3,7 +3,11 @@ class FocusSession {
   final int plannedMinutes;
   final int? actualMinutes;
   final String status;
-  FocusSession({required this.id, required this.plannedMinutes, this.actualMinutes, required this.status});
+  FocusSession(
+      {required this.id,
+      required this.plannedMinutes,
+      this.actualMinutes,
+      required this.status,});
   factory FocusSession.fromJson(Map<String, dynamic> j) => FocusSession(
         id: j['id'] as String,
         plannedMinutes: j['plannedMinutes'] as int,
