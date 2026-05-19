@@ -1,0 +1,58 @@
+services:
+  postgres:
+    image: postgres:16-alpine
+    container_name: umira_postgres
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: umira
+      POSTGRES_PASSWORD: umira_dev_password
+      POSTGRES_DB: umira
+    ports:
+      - "5432:5432"
+    volumes:
+      - umira_pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U umira -d umira"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+  redis:
+    image: redis:7-alpine
+    container_name: umira_redis
+    restart: unless-stopped
+    ports:
+      - "6379:6379"
+    volumes:
+      - umira_redisdata:/data
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 5s
+      timeout: 3s
+      retries: 10
+
+  backend:
+    build: ./backend
+    container_name: umira_backend
+    restart: unless-stopped
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    environment:
+      DATABASE_URL: postgresql://umira:umira_dev_password@postgres:5432/umira?schema=public
+      REDIS_URL: redis://redis:6379
+      NODE_ENV: production
+      PORT: 4000
+      JWT_SECRET: ${JWT_SECRET}
+      OPENAI_API_KEY: ${OPENAI_API_KEY}
+      ANTHROPIC_API_KEY: ${ANTHROPIC_API_KEY}
+      AI_PROVIDER: ${AI_PROVIDER:-openai}
+      CORS_ORIGINS: ${CORS_ORIGINS:-http://localhost:8080}
+    ports:
+      - "4000:4000"
+
+volumes:
+  umira_pgdata:
+  umira_redisdata:
