@@ -3,6 +3,7 @@ import { authenticate } from "../../auth/middleware.js";
 import { CancelFocus, CompleteFocus, StartFocus } from "./focus.schemas.js";
 import { cancelFocus, completeFocus, listFocus, startFocus } from "./focus.service.js";
 import { z } from "zod";
+import { focusSessionsStarted, focusSessionsCompleted } from "../../config/metrics.js";
 
 export default async function focusRoutes(app: FastifyInstance) {
   app.addHook("preHandler", authenticate);
@@ -12,13 +13,16 @@ export default async function focusRoutes(app: FastifyInstance) {
   app.post("/focus/sessions", async (req, reply) => {
     const body = StartFocus.parse(req.body);
     const s = await startFocus(req.user.id, body.taskId, body.plannedMinutes);
+    focusSessionsStarted?.inc();
     return reply.code(201).send({ session: s });
   });
 
   app.post("/focus/sessions/:id/complete", async (req) => {
     const { id } = z.object({ id: z.string().cuid() }).parse(req.params);
     const body = CompleteFocus.parse(req.body);
-    return completeFocus(req.user.id, id, body);
+    const result = await completeFocus(req.user.id, id, body);
+    focusSessionsCompleted?.inc();
+    return result;
   });
 
   app.post("/focus/sessions/:id/cancel", async (req) => {

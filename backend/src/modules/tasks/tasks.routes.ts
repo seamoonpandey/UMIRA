@@ -8,6 +8,7 @@ import {
   reorderMicrotasks, updateMicrotask, updateTask,
 } from "./tasks.service.js";
 import { z } from "zod";
+import { tasksCreated } from "../../config/metrics.js";
 
 export default async function taskRoutes(app: FastifyInstance) {
   app.addHook("preHandler", authenticate);
@@ -20,6 +21,7 @@ export default async function taskRoutes(app: FastifyInstance) {
   app.post("/tasks", async (req, reply) => {
     const body = CreateTask.parse(req.body);
     const t = await createTask(req.user.id, body);
+    tasksCreated?.inc();
     return reply.code(201).send({ task: t });
   });
 

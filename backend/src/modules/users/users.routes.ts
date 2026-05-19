@@ -3,12 +3,14 @@ import { SignIn, SignUp } from "./users.schemas.js";
 import { authenticateUser, createUser } from "./users.service.js";
 import { authenticate } from "../../auth/middleware.js";
 import { prisma } from "../../db/prisma.js";
+import { registeredUsers } from "../../config/metrics.js";
 
 export default async function userRoutes(app: FastifyInstance) {
   app.post("/auth/signup", async (req, reply) => {
     const body = SignUp.parse(req.body);
     const user = await createUser(body);
     const token = app.jwt.sign({ id: user.id, email: user.email });
+    registeredUsers?.inc();
     return reply.code(201).send({ token, user: { id: user.id, email: user.email } });
   });
 
