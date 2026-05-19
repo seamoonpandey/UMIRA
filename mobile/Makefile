@@ -1,7 +1,8 @@
 # UMIRA Mobile Makefile
 # Flutter
 
-.PHONY: help setup analyze test build-apk build-ios build-web clean
+.PHONY: help setup analyze test build-apk build-apk-release build-ios build-web clean \
+        build-web-dev build-web-staging build-web-prod build-apk-staging build-apk-prod
 
 help: ## Show this help
 	@grep -E '^[a-zA-Z_-]+:.*?## .*$$' $(MAKEFILE_LIST) | sort | \
@@ -25,20 +26,47 @@ test: ## Run Flutter tests
 	flutter test
 
 # ──────────────────────────────────────────────
-# Build
+# Build — Development (defaults)
 # ──────────────────────────────────────────────
 
-build-apk: ## Build Android APK (debug)
+build-apk: ## Build Android APK (debug, development env)
 	flutter build apk --debug
 
-build-apk-release: ## Build Android APK (release)
-	flutter build apk --release
+build-web: ## Build web (development env)
+	flutter build web
 
-build-ios: ## Build iOS (requires macOS + Xcode)
+build-ios: ## Build iOS dev (requires macOS + Xcode)
 	flutter build ios --no-codesign
 
-build-web: ## Build web (experimental)
-	flutter build web
+# ──────────────────────────────────────────────
+# Build — Staging
+# ──────────────────────────────────────────────
+
+build-web-staging: ## Build web for staging
+	flutter build web --release \
+		--dart-define=ENVIRONMENT=staging \
+		--dart-define=UMIRA_API_URL=https://staging.api.umira.app/v1
+
+build-apk-staging: ## Build Android APK for staging
+	flutter build apk --release \
+		--dart-define=ENVIRONMENT=staging \
+		--dart-define=UMIRA_API_URL=https://staging.api.umira.app/v1
+
+# ──────────────────────────────────────────────
+# Build — Production
+# ──────────────────────────────────────────────
+
+build-web-prod: ## Build web for production (with Sentry)
+	flutter build web --release \
+		--dart-define=ENVIRONMENT=production \
+		--dart-define=UMIRA_API_URL=https://api.umira.app/v1 \
+		--dart-define=SENTRY_DSN=$(SENTRY_DSN)
+
+build-apk-prod: ## Build Android APK for production (with Sentry)
+	flutter build apk --release \
+		--dart-define=ENVIRONMENT=production \
+		--dart-define=UMIRA_API_URL=https://api.umira.app/v1 \
+		--dart-define=SENTRY_DSN=$(SENTRY_DSN)
 
 # ──────────────────────────────────────────────
 # Utilities
