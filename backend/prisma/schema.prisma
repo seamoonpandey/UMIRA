@@ -1,0 +1,178 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id               String   @id @default(cuid())
+  email            String   @unique
+  passwordHash     String
+  locale           String   @default("en")
+  timezone         String   @default("UTC")
+  consentVersion   String   @default("1.0")
+  marketingOptIn   Boolean  @default(false)
+  createdAt        DateTime @default(now())
+  updatedAt        DateTime @updatedAt
+  deletedAt        DateTime?
+
+  preferences      UserPreference?
+  tasks            Task[]
+  textSessions     TextSession[]
+  focusSessions    FocusSession[]
+  analyticsEvents  AnalyticsEvent[]
+  aiJobs           AiJob[]
+  auditLog         AuditLog[]
+
+  @@index([email])
+}
+
+model UserPreference {
+  id                    String  @id @default(cuid())
+  userId                String  @unique
+  textDensity           String  @default("comfortable")
+  lineFocus             Boolean @default(false)
+  fontScale             Float   @default(1.0)
+  spacingMode           String  @default("normal")
+  sessionLengthDefault  Int     @default(15)
+  cueIntensity          String  @default("gentle")
+  rewardStyle           String  @default("minimal")
+  simplifyLevel         String  @default("medium")
+  useDyslexiaFont       Boolean @default(false)
+  reducedMotion         Boolean @default(false)
+  ttsRate               Float   @default(1.0)
+  ttsPitch              Float   @default(1.0)
+  updatedAt             DateTime @updatedAt
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+model Task {
+  id          String    @id @default(cuid())
+  userId      String
+  title       String
+  sourceText  String?
+  status      String    @default("open")
+  priority    String    @default("normal")
+  dueAt       DateTime?
+  createdAt   DateTime  @default(now())
+  archivedAt  DateTime?
+
+  user        User       @relation(fields: [userId], references: [id], onDelete: Cascade)
+  microtasks  Microtask[]
+  focusSessions FocusSession[]
+
+  @@index([userId, status])
+  @@index([userId, createdAt])
+}
+
+model Microtask {
+  id               String   @id @default(cuid())
+  taskId           String
+  label            String
+  position         Int
+  estimatedMinutes Int      @default(5)
+  status           String   @default("pending")
+  generatedBy      String   @default("ai")
+  editedByUser     Boolean  @default(false)
+  createdAt        DateTime @default(now())
+
+  task Task @relation(fields: [taskId], references: [id], onDelete: Cascade)
+
+  @@index([taskId, position])
+}
+
+model TextSession {
+  id              String   @id @default(cuid())
+  userId          String
+  sourceType      String   @default("paste")
+  originalText    String
+  simplifiedText  String?
+  readabilityTarget String @default("medium")
+  ttsEnabled      Boolean  @default(false)
+  createdAt       DateTime @default(now())
+
+  user   User @relation(fields: [userId], references: [id], onDelete: Cascade)
+  chunks TextChunk[]
+
+  @@index([userId, createdAt])
+}
+
+model TextChunk {
+  id              String  @id @default(cuid())
+  textSessionId   String
+  chunkIndex      Int
+  originalChunk   String
+  simplifiedChunk String
+  keyTermsJson    Json?
+
+  textSession TextSession @relation(fields: [textSessionId], references: [id], onDelete: Cascade)
+
+  @@index([textSessionId, chunkIndex])
+}
+
+model FocusSession {
+  id                String    @id @default(cuid())
+  userId            String
+  taskId            String?
+  plannedMinutes    Int
+  actualMinutes     Int?
+  status            String    @default("planned")
+  distractionEvents Int       @default(0)
+  reflectionText    String?
+  startedAt         DateTime?
+  completedAt       DateTime?
+  createdAt         DateTime  @default(now())
+
+  user User  @relation(fields: [userId], references: [id], onDelete: Cascade)
+  task Task? @relation(fields: [taskId], references: [id], onDelete: SetNull)
+
+  @@index([userId, createdAt])
+}
+
+model AnalyticsEvent {
+  id         String   @id @default(cuid())
+  userId     String
+  eventName  String
+  eventProps Json
+  createdAt  DateTime @default(now())
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId, createdAt])
+  @@index([eventName, createdAt])
+}
+
+model AiJob {
+  id              String   @id @default(cuid())
+  userId          String
+  jobType         String
+  inputHash       String
+  outputHash      String?
+  validatorStatus String   @default("pending")
+  modelClass      String
+  errorMessage    String?
+  createdAt       DateTime @default(now())
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId, createdAt])
+}
+
+model AuditLog {
+  id           String   @id @default(cuid())
+  userId       String?
+  action       String
+  entityType   String
+  entityId     String?
+  metadataJson Json?
+  createdAt    DateTime @default(now())
+
+  user User? @relation(fields: [userId], references: [id], onDelete: SetNull)
+
+  @@index([userId, createdAt])
+  @@index([action, createdAt])
+}
