@@ -6,7 +6,7 @@ import sensible from "@fastify/sensible";
 import { ZodError } from "zod";
 
 import { env } from "./config/env.js";
-import { logger } from "./config/logger.js";
+import { logger as appLogger } from "./config/logger.js";
 import { registerJwt } from "./auth/jwt.js";
 import { HttpError } from "./utils/errors.js";
 
@@ -19,7 +19,7 @@ import analyticsRoutes from "./modules/analytics/analytics.routes.js";
 import privacyRoutes from "./modules/privacy/privacy.routes.js";
 
 export async function buildApp(): Promise<FastifyInstance> {
-  const app = Fastify({ logger, trustProxy: true, bodyLimit: 1_000_000 });
+  const app = Fastify({ logger: true, trustProxy: true, bodyLimit: 1_000_000 });
 
   await app.register(helmet, { contentSecurityPolicy: false });
   await app.register(cors, {
@@ -40,7 +40,7 @@ export async function buildApp(): Promise<FastifyInstance> {
     if (err instanceof HttpError) {
       return reply.code(err.statusCode).send({ error: err.message, code: err.code });
     }
-    logger.error({ err }, "unhandled error");
+    appLogger.error({ err }, "unhandled error");
     return reply.code(err.statusCode ?? 500).send({ error: "internal_error" });
   });
 

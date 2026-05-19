@@ -21,17 +21,23 @@ export class OpenAIProvider implements AIProvider {
 export class MockProvider implements AIProvider {
   name() { return "mock:deterministic"; }
   async chatJson({ messages }: { messages: ChatMessage[] }) {
+    const systemMsg = messages.find((m) => m.role === "system")?.content ?? "";
     const userMsg = messages.find((m) => m.role === "user")?.content ?? "";
-    if (userMsg.toLowerCase().includes("simplif")) {
+
+    // Route by system prompt to avoid keyword collision in user messages
+    if (systemMsg.includes("rewrite text to reduce cognitive load")) {
       return {
-        summary: "This is a simplified placeholder summary.",
-        chunks: [{ original: userMsg.slice(0, 200), simplified: "Plain summary of the text." }],
-        key_terms: [],
+        summary: "This text discusses how to reduce cognitive load through clear writing.",
+        chunks: [
+          { original: userMsg.slice(0, 200), simplified: "Clear writing helps reduce mental effort when reading." },
+        ],
+        key_terms: [{ term: "Cognitive load", definition: "The amount of mental effort needed to process information" }],
       };
     }
-    if (userMsg.toLowerCase().includes("reflect")) {
+    if (systemMsg.includes("short, warm, non-judgmental")) {
       return { reflection: "Nice work finishing this session. Maybe take a short stretch." };
     }
+    // Default: microtask generation
     return {
       steps: [
         { label: "Open the document you need", estimated_minutes: 2 },
