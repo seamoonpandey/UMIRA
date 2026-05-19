@@ -1,4 +1,4 @@
-import Fastify, { type FastifyInstance, type FastifyError } from "fastify";
+import Fastify, { type FastifyInstance, type FastifyError, type FastifyBaseLogger } from "fastify";
 import cors from "@fastify/cors";
 import helmet from "@fastify/helmet";
 import rateLimit from "@fastify/rate-limit";
@@ -24,7 +24,7 @@ import privacyRoutes from "./modules/privacy/privacy.routes.js";
 
 export async function buildApp(): Promise<FastifyInstance> {
   initMetrics();
-  const app = Fastify({ loggerInstance: appLogger, trustProxy: true, bodyLimit: 1_000_000 });
+  const app = Fastify({ loggerInstance: appLogger as unknown as FastifyBaseLogger, trustProxy: true, bodyLimit: 1_000_000 });
 
   /* ── Error Handler (set early; last registration wins) ───────────── */
 
