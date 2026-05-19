@@ -92,6 +92,31 @@ docker-logs: ## Tail Docker logs
 	docker compose logs -f
 
 # ──────────────────────────────────────────────
+# Production Deployment
+# ──────────────────────────────────────────────
+
+deploy: ## Full production deploy (build + migrate + health check)
+	./infra/deploy.sh
+
+deploy-skip-build: ## Deploy without rebuilding images
+	./infra/deploy.sh --skip-build
+
+deploy-rollback: ## Rollback to previous release
+	./infra/deploy.sh --rollback
+
+nginx-reload: ## Reload nginx config (after config changes)
+	docker compose exec nginx nginx -s reload
+
+nginx-logs: ## Tail nginx access logs
+	docker compose logs -f nginx
+
+ssl-setup: ## Request SSL certificates (dry-run / staging)
+	./infra/ssl/setup-ssl.sh
+
+ssl-setup-live: ## Request SSL certificates (production)
+	./infra/ssl/setup-ssl.sh --live
+
+# ──────────────────────────────────────────────
 # Housekeeping
 # ──────────────────────────────────────────────
 

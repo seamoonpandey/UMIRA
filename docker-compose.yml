@@ -46,13 +46,48 @@ services:
       NODE_ENV: production
       PORT: 4000
       JWT_SECRET: ${JWT_SECRET}
+      SENTRY_DSN: ${SENTRY_DSN:-}
+      SENTRY_ENVIRONMENT: production
+      PROMETHEUS_ENABLED: "true"
       OPENAI_API_KEY: ${OPENAI_API_KEY}
       ANTHROPIC_API_KEY: ${ANTHROPIC_API_KEY}
       AI_PROVIDER: ${AI_PROVIDER:-openai}
-      CORS_ORIGINS: ${CORS_ORIGINS:-http://localhost:8080}
+      CORS_ORIGINS: ${CORS_ORIGINS:-https://umira.app}
     ports:
       - "4000:4000"
+
+  nginx:
+    image: nginx:1.27-alpine
+    container_name: umira_nginx
+    restart: unless-stopped
+    depends_on:
+      - backend
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - ./infra/nginx/nginx.conf:/etc/nginx/conf.d/default.conf:ro
+      - ./mobile/build/web:/var/www/umira:ro
+      - umira_certbot_www:/var/www/certbot:ro
+      - umira_letsencrypt:/etc/letsencrypt:ro
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "10m"
+        max-file: "3"
+
+  certbot:
+    image: certbot/certbot:latest
+    container_name: umira_certbot
+    profiles: ["tools"]
+    volumes:
+      - umira_certbot_www:/var/www/certbot
+      - umira_letsencrypt:/etc/letsencrypt
+    entrypoint: >
+      sh -c "trap exit TERM; while :; do sleep 12h & wait \$\$!; certbot renew --quiet; done"
 
 volumes:
   umira_pgdata:
   umira_redisdata:
+  umira_certbot_www:
+  umira_letsencrypt:
