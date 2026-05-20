@@ -54,6 +54,7 @@ vi.mock("../db/prisma.js", () => ({
     textChunk: mockModel(),
     focusSession: mockModel(),
     analyticsEvent: mockModel(),
+    interventionSession: mockModel(),
     aiJob: mockModel(),
     auditLog: mockModel(),
     $disconnect: vi.fn(),

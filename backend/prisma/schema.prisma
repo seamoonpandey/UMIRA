@@ -24,7 +24,8 @@ model User {
   tasks            Task[]
   textSessions     TextSession[]
   focusSessions    FocusSession[]
-  analyticsEvents  AnalyticsEvent[]
+  analyticsEvents    AnalyticsEvent[]
+  interventionSessions InterventionSession[]
   aiJobs           AiJob[]
   auditLog         AuditLog[]
 
@@ -145,6 +146,25 @@ model AnalyticsEvent {
 
   @@index([userId, createdAt])
   @@index([eventName, createdAt])
+}
+
+model InterventionSession {
+  id        String   @id @default(cuid())
+  userId    String
+  type      String   // spelling | typing | lesson | practice
+  score     Int?
+  total     Int?
+  wpm       Int?
+  accuracy  Int?
+  grapheme  String?
+  phoneme   String?
+  statsJson Json?
+  createdAt DateTime @default(now())
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId, createdAt])
+  @@index([type, createdAt])
 }
 
 model AiJob {

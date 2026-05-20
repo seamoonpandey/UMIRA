@@ -73,22 +73,18 @@ export default async function interventionRoutes(app: FastifyInstance) {
   app.post("/intervention/sessions", async (req) => {
     const body = SaveInterventionSession.parse(req.body);
 
-    // Log as analytics event for now
     const { prisma } = await import("../../db/prisma.js");
-    const session = await prisma.analyticsEvent.create({
+    const session = await prisma.interventionSession.create({
       data: {
         userId: req.user.id,
-        eventName: `intervention.${body.type}`,
-        eventProps: {
-          score: body.score,
-          total: body.total,
-          wpm: body.wpm,
-          accuracy: body.accuracy,
-          grapheme: body.grapheme,
-          phoneme: body.phoneme,
-          stats: body.stats,
-          timestamp: new Date().toISOString(),
-        },
+        type: body.type,
+        score: body.score ?? null,
+        total: body.total ?? null,
+        wpm: body.wpm ?? null,
+        accuracy: body.accuracy ?? null,
+        grapheme: body.grapheme ?? null,
+        phoneme: body.phoneme ?? null,
+        statsJson: body.stats ?? undefined,
       },
     });
 
@@ -99,11 +95,8 @@ export default async function interventionRoutes(app: FastifyInstance) {
 
   app.get("/intervention/sessions", async (req) => {
     const { prisma } = await import("../../db/prisma.js");
-    const sessions = await prisma.analyticsEvent.findMany({
-      where: {
-        userId: req.user.id,
-        eventName: { startsWith: "intervention." },
-      },
+    const sessions = await prisma.interventionSession.findMany({
+      where: { userId: req.user.id },
       orderBy: { createdAt: "desc" },
       take: 100,
     });
@@ -111,9 +104,13 @@ export default async function interventionRoutes(app: FastifyInstance) {
     return {
       sessions: sessions.map((s) => ({
         id: s.id,
-        type: s.eventName.replace("intervention.", ""),
+        type: s.type,
         date: s.createdAt.toISOString(),
-        ...(s.eventProps as any),
+        score: s.score,
+        total: s.total,
+        wpm: s.wpm,
+        accuracy: s.accuracy,
+        grapheme: s.grapheme,
       })),
     };
   });

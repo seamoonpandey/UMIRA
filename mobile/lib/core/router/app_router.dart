@@ -20,6 +20,7 @@ import '../../features/intervention/views/phonics_lesson_view.dart';
 import '../../features/intervention/views/spelling_view.dart';
 import '../../features/intervention/views/typing_view.dart';
 import '../../features/intervention/views/masking_view.dart';
+import '../../features/intervention/views/ocr_scan_view.dart';
 
 final appRouterProvider = Provider<GoRouter>((ref) {
   final auth = ref.watch(authStateProvider);
@@ -76,6 +77,9 @@ final appRouterProvider = Provider<GoRouter>((ref) {
       GoRoute(
           path: '/intervention/masking',
           builder: (_, __) => const MaskingView(),),
+      GoRoute(
+          path: '/intervention/scan',
+          builder: (_, __) => const OcrScanView(),),
     ],
   );
 });

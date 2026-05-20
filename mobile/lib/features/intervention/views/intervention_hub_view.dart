@@ -48,6 +48,13 @@ class InterventionHubView extends ConsumerWidget {
         color: const Color(0xFFFF9800),
         route: '/intervention/typing',
       ),
+      _InterventionItem(
+        title: 'Text Scanner',
+        description: 'Scan text from images with OCR',
+        icon: Icons.document_scanner,
+        color: const Color(0xFF9C27B0),
+        route: '/intervention/scan',
+      ),
     ];
 
     return Scaffold(
