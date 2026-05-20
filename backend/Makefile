@@ -21,7 +21,7 @@ install: ## Install npm dependencies
 # ──────────────────────────────────────────────
 
 dev: ## Start dev server with hot-reload
-	tsx watch src/server.ts
+	npx tsx watch src/server.ts
 
 start: ## Start production server
 	node dist/server.js
