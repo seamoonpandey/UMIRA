@@ -1,10 +1,61 @@
 import { describe, it, expect, beforeAll, afterAll, beforeEach, vi } from "vitest";
 import { getApp, closeApp, injectAuth } from "../helpers";
 import type { FastifyInstance } from "fastify";
+import FormData from "form-data";
+
+// ── Helpers ────────────────────────────────────────────────
+
+function createTestWav(): Buffer {
+  const sampleRate = 44100;
+  const bitsPerSample = 16;
+  const numChannels = 1;
+  const dataSize = 176;
+  const headerSize = 44;
+  const fileSize = headerSize + dataSize - 8;
+
+  const buf = Buffer.alloc(headerSize + dataSize);
+  buf.write("RIFF", 0);
+  buf.writeUInt32LE(fileSize, 4);
+  buf.write("WAVE", 8);
+  buf.write("fmt ", 12);
+  buf.writeUInt32LE(16, 16);
+  buf.writeUInt16LE(1, 20);
+  buf.writeUInt16LE(numChannels, 22);
+  buf.writeUInt32LE(sampleRate, 24);
+  buf.writeUInt32LE(sampleRate * numChannels * bitsPerSample / 8, 28);
+  buf.writeUInt16LE(numChannels * bitsPerSample / 8, 32);
+  buf.writeUInt16LE(bitsPerSample, 34);
+  buf.write("data", 36);
+  buf.writeUInt32LE(dataSize, 40);
+  return buf;
+}
+
+function buildMultipart(opts: { files?: { name: string; filename: string; contentType: string; buffer: Buffer }[]; fields?: Record<string, string> }): { headers: Record<string, string>; body: Buffer } {
+  const form = new FormData();
+  if (opts.files) {
+    for (const f of opts.files) {
+      form.append(f.name, f.buffer, { filename: f.filename, contentType: f.contentType });
+    }
+  }
+  if (opts.fields) {
+    for (const [key, val] of Object.entries(opts.fields)) {
+      form.append(key, val);
+    }
+  }
+  return { headers: form.getHeaders() as Record<string, string>, body: form.getBuffer() };
+}
 
 // Mock service functions to avoid hitting external APIs
 vi.mock("../../modules/intervention/simplify.service.js", () => ({
   simplifyWithBart: vi.fn(),
+}));
+
+vi.mock("../../modules/intervention/intervention.service.js", () => ({
+  analyzePracticeAudio: vi.fn(),
+}));
+
+vi.mock("../../modules/intervention/ocr.service.js", () => ({
+  performOcr: vi.fn(),
 }));
 
 let app: FastifyInstance;
@@ -244,6 +295,117 @@ describe("POST /v1/intervention/analyze-practice", () => {
     vi.clearAllMocks();
   });
 
+  it("analyzes an audio file and returns word data and stats", async () => {
+    const { analyzePracticeAudio } = await import("../../modules/intervention/intervention.service.js");
+    (analyzePracticeAudio as any).mockResolvedValue({
+      wordData: [
+        { word: "the", status: "correct", start: 0.1, end: 0.3, pauseMs: 0, durationRatio: 0.5, speechRateWpm: 120 },
+        { word: "boy", status: "correct", start: 0.4, end: 0.6, pauseMs: 100, durationRatio: 0.5, speechRateWpm: 125 },
+      ],
+      stats: { skippedWords: 0, repetitions: 0, wpm: 122.5 },
+    });
+
+    const wav = createTestWav();
+    const mp = buildMultipart({
+      files: [{ name: "file", filename: "test.wav", contentType: "audio/wav", buffer: wav }],
+      fields: { expectedText: "the boy went to the store" },
+    });
+
+    const res = await app.inject({
+      method: "POST",
+      url: "/v1/intervention/analyze-practice",
+      headers: { ...headers(), ...mp.headers },
+      payload: mp.body,
+    });
+
+    expect(res.statusCode).toBe(200);
+    const body = JSON.parse(res.body);
+    expect(body.wordData).toHaveLength(2);
+    expect(body.wordData[0].word).toBe("the");
+    expect(body.wordData[0].status).toBe("correct");
+    expect(body.stats.skippedWords).toBe(0);
+    expect(body.stats.wpm).toBe(122.5);
+  });
+
+  it("uses default expected text when field is missing", async () => {
+    const { analyzePracticeAudio } = await import("../../modules/intervention/intervention.service.js");
+    (analyzePracticeAudio as any).mockResolvedValue({
+      wordData: [{ word: "the", status: "correct", start: 0.1, end: 0.3, pauseMs: 0, durationRatio: 0.5, speechRateWpm: 100 }],
+      stats: { skippedWords: 0, repetitions: 0, wpm: 100 },
+    });
+
+    const wav = createTestWav();
+    const mp = buildMultipart({
+      files: [{ name: "file", filename: "test.wav", contentType: "audio/wav", buffer: wav }],
+    });
+
+    const res = await app.inject({
+      method: "POST",
+      url: "/v1/intervention/analyze-practice",
+      headers: { ...headers(), ...mp.headers },
+      payload: mp.body,
+    });
+
+    expect(res.statusCode).toBe(200);
+    const body = JSON.parse(res.body);
+    expect(body.wordData).toHaveLength(1);
+    // verify the service was called with the default expected text
+    expect(analyzePracticeAudio).toHaveBeenCalledWith(
+      expect.any(Buffer),
+      expect.any(String),
+      "The boy went to the store to buy some candy.",
+    );
+  });
+
+  it("forwards custom expectedText field to the service", async () => {
+    const { analyzePracticeAudio } = await import("../../modules/intervention/intervention.service.js");
+    (analyzePracticeAudio as any).mockResolvedValue({
+      wordData: [],
+      stats: { skippedWords: 0, repetitions: 0, wpm: 0 },
+    });
+
+    const wav = createTestWav();
+    const mp = buildMultipart({
+      files: [{ name: "file", filename: "test.wav", contentType: "audio/wav", buffer: wav }],
+      fields: { expectedText: "custom text for analysis" },
+    });
+
+    const res = await app.inject({
+      method: "POST",
+      url: "/v1/intervention/analyze-practice",
+      headers: { ...headers(), ...mp.headers },
+      payload: mp.body,
+    });
+
+    expect(res.statusCode).toBe(200);
+    expect(analyzePracticeAudio).toHaveBeenCalledWith(
+      expect.any(Buffer),
+      expect.any(String),
+      "custom text for analysis",
+    );
+  });
+
+  it("handles service errors gracefully", async () => {
+    const { analyzePracticeAudio } = await import("../../modules/intervention/intervention.service.js");
+    (analyzePracticeAudio as any).mockRejectedValue(new Error("Groq API rate limit exceeded"));
+
+    const wav = createTestWav();
+    const mp = buildMultipart({
+      files: [{ name: "file", filename: "test.wav", contentType: "audio/wav", buffer: wav }],
+    });
+
+    const res = await app.inject({
+      method: "POST",
+      url: "/v1/intervention/analyze-practice",
+      headers: { ...headers(), ...mp.headers },
+      payload: mp.body,
+    });
+
+    expect(res.statusCode).toBe(500);
+    const body = JSON.parse(res.body);
+    expect(body.error).toContain("Groq API rate limit exceeded");
+  });
+
   it("returns 406 when request is not multipart", async () => {
     const res = await app.inject({
       method: "POST",
@@ -274,6 +436,48 @@ describe("POST /v1/intervention/analyze-practice", () => {
 describe("POST /v1/intervention/ocr", () => {
   beforeEach(() => {
     vi.clearAllMocks();
+  });
+
+  it("extracts text from an uploaded image", async () => {
+    const { performOcr } = await import("../../modules/intervention/ocr.service.js");
+    (performOcr as any).mockResolvedValue("Extracted text from the image.");
+
+    const img = Buffer.from("fake-png-data");
+    const mp = buildMultipart({
+      files: [{ name: "image", filename: "scan.png", contentType: "image/png", buffer: img }],
+    });
+
+    const res = await app.inject({
+      method: "POST",
+      url: "/v1/intervention/ocr",
+      headers: { ...headers(), ...mp.headers },
+      payload: mp.body,
+    });
+
+    expect(res.statusCode).toBe(200);
+    const body = JSON.parse(res.body);
+    expect(body.text).toBe("Extracted text from the image.");
+  });
+
+  it("handles OCR service errors gracefully", async () => {
+    const { performOcr } = await import("../../modules/intervention/ocr.service.js");
+    (performOcr as any).mockRejectedValue(new Error("Tesseract failed to process"));
+
+    const img = Buffer.from("fake-png-data");
+    const mp = buildMultipart({
+      files: [{ name: "image", filename: "scan.png", contentType: "image/png", buffer: img }],
+    });
+
+    const res = await app.inject({
+      method: "POST",
+      url: "/v1/intervention/ocr",
+      headers: { ...headers(), ...mp.headers },
+      payload: mp.body,
+    });
+
+    expect(res.statusCode).toBe(500);
+    const body = JSON.parse(res.body);
+    expect(body.error).toContain("Tesseract failed to process");
   });
 
   it("returns 406 when request is not multipart", async () => {

@@ -28,20 +28,20 @@ start: ## Start production server
 
 build: ## Compile TypeScript to dist/
 	npx prisma generate
-	tsc -p tsconfig.json
+	npx tsc -p tsconfig.json
 
 # ──────────────────────────────────────────────
 # Linting & Testing
 # ──────────────────────────────────────────────
 
 lint: ## Run ESLint
-	eslint src --ext .ts
+	npx eslint src
 
 test: ## Run Vitest tests
-	vitest run
+	npx vitest run
 
 test-watch: ## Run Vitest in watch mode
-	vitest
+	npx vitest
 
 # ──────────────────────────────────────────────
 # Database (Prisma)
@@ -54,7 +54,7 @@ db-migrate: ## Apply pending migrations
 	npx prisma migrate dev
 
 db-seed: ## Seed database with demo data
-	tsx prisma/seed.ts
+	npx tsx prisma/seed.ts
 
 db-reset: ## Reset database (drop, re-migrate, re-seed)
 	npx prisma migrate reset --force

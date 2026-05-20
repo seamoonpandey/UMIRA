@@ -10,14 +10,16 @@ import '../../preferences/providers/preferences_provider.dart';
 import '../data/intervention_repository.dart';
 
 class OcrScanView extends ConsumerStatefulWidget {
-  const OcrScanView({super.key});
+  final ImagePicker? imagePicker;
+
+  const OcrScanView({super.key, this.imagePicker});
 
   @override
   ConsumerState<OcrScanView> createState() => _OcrScanViewState();
 }
 
 class _OcrScanViewState extends ConsumerState<OcrScanView> {
-  final _picker = ImagePicker();
+  late final ImagePicker _picker = widget.imagePicker ?? ImagePicker();
   File? _imageFile;
   String? _extractedText;
   bool _isProcessing = false;
@@ -296,9 +298,10 @@ class _OcrScanViewState extends ConsumerState<OcrScanView> {
             ),
           ],
 
-          // Results
-          if (_extractedText != null) ...[
+          // Results — success banner
+          if (_extractedText != null)
             const SizedBox(height: 8),
+          if (_extractedText != null)
             Row(
               children: [
                 Icon(Icons.check_circle, color: Colors.green.shade600, size: 20),
@@ -312,54 +315,60 @@ class _OcrScanViewState extends ConsumerState<OcrScanView> {
                 ),
               ],
             ),
+          if (_extractedText != null)
             const SizedBox(height: 12),
-            UmiraCard(
-              child: Padding(
-                padding: const EdgeInsets.all(16),
-                child: SelectableText(
-                  _extractedText!,
-                  style: TextStyle(
-                    fontSize: 18,
-                    height: 1.6,
-                    fontFamily: useDyslexic ? 'Lexend' : null,
-                  ),
-                ),
-              ),
-            ),
-            const SizedBox(height: 16),
-            Row(
+
+          // Results — text display + action buttons (as a single nested structure)
+          if (_extractedText != null)
+            Column(
+              crossAxisAlignment: CrossAxisAlignment.stretch,
               children: [
-                Expanded(
-                  child: UmiraButton(
-                    label: 'Scan Again',
-                    icon: Icons.refresh,
-                    onPressed: _clearImage,
+                Padding(
+                  padding: const EdgeInsets.all(16),
+                  child: SelectableText(
+                    _extractedText!,
+                    style: TextStyle(
+                      fontSize: 18,
+                      height: 1.6,
+                      fontFamily: useDyslexic ? 'Lexend' : null,
+                    ),
                   ),
                 ),
-                const SizedBox(width: 12),
-                Expanded(
-                  child: UmiraButton(
-                    label: 'Copy Text',
-                    primary: true,
-                    icon: Icons.copy,
-                    onPressed: () {
-                      if (_extractedText != null) {
-                        Clipboard.setData(
-                          ClipboardData(text: _extractedText!),
-                        );
-                        ScaffoldMessenger.of(context).showSnackBar(
-                          const SnackBar(
-                            content: Text('Text copied to clipboard'),
-                            duration: Duration(seconds: 2),
-                          ),
-                        );
-                      }
-                    },
-                  ),
+                const SizedBox(height: 16),
+                Row(
+                  children: [
+                    Expanded(
+                      child: UmiraButton(
+                        label: 'Scan Again',
+                        icon: Icons.refresh,
+                        onPressed: _clearImage,
+                      ),
+                    ),
+                    const SizedBox(width: 12),
+                    Expanded(
+                      child: UmiraButton(
+                        label: 'Copy Text',
+                        primary: true,
+                        icon: Icons.copy,
+                        onPressed: () {
+                          if (_extractedText != null) {
+                            Clipboard.setData(
+                              ClipboardData(text: _extractedText!),
+                            );
+                            ScaffoldMessenger.of(context).showSnackBar(
+                              const SnackBar(
+                                content: Text('Text copied to clipboard'),
+                                duration: Duration(seconds: 2),
+                              ),
+                            );
+                          }
+                        },
+                      ),
+                    ),
+                  ],
                 ),
               ],
             ),
-          ],
         ],
       ),
     );
