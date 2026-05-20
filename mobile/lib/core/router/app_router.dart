@@ -14,6 +14,12 @@ import '../../features/focus/views/focus_setup_view.dart';
 import '../../features/focus/views/focus_session_view.dart';
 import '../../features/preferences/views/preferences_view.dart';
 import '../../features/analytics/views/analytics_view.dart';
+import '../../features/intervention/views/intervention_hub_view.dart';
+import '../../features/intervention/views/practice_view.dart';
+import '../../features/intervention/views/phonics_lesson_view.dart';
+import '../../features/intervention/views/spelling_view.dart';
+import '../../features/intervention/views/typing_view.dart';
+import '../../features/intervention/views/masking_view.dart';
 
 final appRouterProvider = Provider<GoRouter>((ref) {
   final auth = ref.watch(authStateProvider);
@@ -53,6 +59,23 @@ final appRouterProvider = Provider<GoRouter>((ref) {
       GoRoute(
           path: '/preferences', builder: (_, __) => const PreferencesView(),),
       GoRoute(path: '/analytics', builder: (_, __) => const AnalyticsView()),
+      GoRoute(
+          path: '/intervention', builder: (_, __) => const InterventionHubView(),),
+      GoRoute(
+          path: '/intervention/practice',
+          builder: (_, __) => const PracticeView(),),
+      GoRoute(
+          path: '/intervention/lesson',
+          builder: (_, __) => const PhonicsLessonView(),),
+      GoRoute(
+          path: '/intervention/spelling',
+          builder: (_, __) => const SpellingView(),),
+      GoRoute(
+          path: '/intervention/typing',
+          builder: (_, __) => const TypingView(),),
+      GoRoute(
+          path: '/intervention/masking',
+          builder: (_, __) => const MaskingView(),),
     ],
   );
 });

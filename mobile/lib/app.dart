@@ -12,12 +12,20 @@ class UmiraApp extends ConsumerWidget {
     final router = ref.watch(appRouterProvider);
     final prefs = ref.watch(localPrefsProvider);
 
+    // Map themeMode string to ThemeMode enum
+    final themeMode = switch (prefs.themeMode) {
+      'light' => ThemeMode.light,
+      'dark' => ThemeMode.dark,
+      'warm' => ThemeMode.light, // warm is a light variant
+      _ => ThemeMode.system,
+    };
+
     return MaterialApp.router(
       title: 'UMIRA',
       debugShowCheckedModeBanner: false,
-      theme: AppTheme.light(prefs),
+      theme: prefs.themeMode == 'warm' ? AppTheme.warm(prefs) : AppTheme.light(prefs),
       darkTheme: AppTheme.dark(prefs),
-      themeMode: ThemeMode.system,
+      themeMode: themeMode,
       routerConfig: router,
       builder: (context, child) {
         return MediaQuery(

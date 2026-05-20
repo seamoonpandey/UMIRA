@@ -24,6 +24,8 @@ const Env = z.object({
   LOG_LEVEL: z.string().default("info"),
   SENTRY_DSN: z.string().url().optional(),
   SENTRY_ENVIRONMENT: z.string().optional(),
+  GROQ_API_KEY: z.string().optional(),
+  HUGGINGFACE_API_KEY: z.string().optional(),
   PROMETHEUS_ENABLED: z.coerce.boolean().default(false),
 });
 

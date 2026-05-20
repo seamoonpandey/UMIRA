@@ -1,4 +1,5 @@
 import Fastify, { type FastifyInstance, type FastifyError, type FastifyBaseLogger } from "fastify";
+import multipart from "@fastify/multipart";
 import cors from "@fastify/cors";
 import helmet from "@fastify/helmet";
 import rateLimit from "@fastify/rate-limit";
@@ -21,6 +22,7 @@ import readingRoutes from "./modules/reading/reading.routes.js";
 import focusRoutes from "./modules/focus/focus.routes.js";
 import analyticsRoutes from "./modules/analytics/analytics.routes.js";
 import privacyRoutes from "./modules/privacy/privacy.routes.js";
+import interventionRoutes from "./modules/intervention/intervention.routes.js";
 
 export async function buildApp(): Promise<FastifyInstance> {
   initMetrics();
@@ -105,6 +107,7 @@ export async function buildApp(): Promise<FastifyInstance> {
     timeWindow: env.RATE_LIMIT_WINDOW,
   });
 
+  await app.register(multipart);
   await app.register(compress);
   await registerJwt(app);
 
@@ -183,6 +186,7 @@ export async function buildApp(): Promise<FastifyInstance> {
   await app.register(focusRoutes, { prefix: "/v1" });
   await app.register(analyticsRoutes, { prefix: "/v1" });
   await app.register(privacyRoutes, { prefix: "/v1" });
+  await app.register(interventionRoutes, { prefix: "/v1" });
 
   return app;
 }

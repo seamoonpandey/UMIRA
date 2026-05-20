@@ -25,7 +25,23 @@ class PreferencesView extends ConsumerWidget {
       body: ListView(
         padding: const EdgeInsets.all(16),
         children: [
-          _section('Reading & display'),
+          _section('Theme & display'),
+          ListTile(
+            title: const Text('Theme'),
+            subtitle: Wrap(
+              spacing: 8,
+              children: ['system', 'light', 'warm', 'dark']
+                  .map((m) => ChoiceChip(
+                        label: Text(m[0].toUpperCase() + m.substring(1)),
+                        selected: prefs.themeMode == m,
+                        onSelected: (_) {
+                          notifier.update((s) => s.copyWith(themeMode: m));
+                          sync({'themeMode': m});
+                        },
+                      ),)
+                  .toList(),
+            ),
+          ),
           SwitchListTile(
             title: const Text('Dyslexia-friendly font'),
             subtitle: const Text('Uses a high-readability typeface'),
@@ -64,6 +80,38 @@ class PreferencesView extends ConsumerWidget {
                       ),)
                   .toList(),
             ),
+          ),
+          ListTile(
+            title: const Text('Paragraph spacing'),
+            subtitle: Slider(
+              min: 8.0,
+              max: 40.0,
+              divisions: 16,
+              value: prefs.paragraphSpacing,
+              label: '${prefs.paragraphSpacing.round()}px',
+              onChanged: (v) {
+                notifier.update((s) => s.copyWith(paragraphSpacing: v));
+                sync({'paragraphSpacing': v});
+              },
+            ),
+          ),
+          SwitchListTile(
+            title: const Text('Short line width'),
+            subtitle: const Text('Limits text width for easier tracking'),
+            value: prefs.shortLineWidth,
+            onChanged: (v) {
+              notifier.update((s) => s.copyWith(shortLineWidth: v));
+              sync({'shortLineWidth': v});
+            },
+          ),
+          SwitchListTile(
+            title: const Text('Enable chunking'),
+            subtitle: const Text('Break text into smaller digestible chunks'),
+            value: prefs.chunkingEnabled,
+            onChanged: (v) {
+              notifier.update((s) => s.copyWith(chunkingEnabled: v));
+              sync({'chunkingEnabled': v});
+            },
           ),
           SwitchListTile(
             title: const Text('Reduce motion'),

@@ -134,6 +134,8 @@ class HomeView extends ConsumerWidget {
       _Action('Tasks', Icons.checklist, '/tasks'),
       _Action('Read', Icons.menu_book_outlined, '/reading'),
       _Action('Focus', Icons.timer_outlined, '/focus'),
+      _Action('Intervene', Icons.interpreter_mode, '/intervention'),
+      _Action('Insights', Icons.insights_outlined, '/analytics'),
       _Action('Settings', Icons.tune, '/preferences'),
     ];
     return GridView.count(
