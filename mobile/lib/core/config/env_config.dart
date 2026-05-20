@@ -9,9 +9,18 @@
 
 import 'package:flutter/foundation.dart';
 
+String get _defaultApiUrl {
+  // Android emulator uses 10.0.2.2 to reach host localhost.
+  // All other platforms (Linux, web, iOS sim) can use localhost directly.
+  if (defaultTargetPlatform == TargetPlatform.android) {
+    return 'http://10.0.2.2:4000/v1';
+  }
+  return 'http://localhost:4000/v1';
+}
+
 const _kDefaultApiUrl = String.fromEnvironment(
   'UMIRA_API_URL',
-  defaultValue: 'http://10.0.2.2:4000/v1',
+  defaultValue: '',
 );
 
 const _kDefaultSentryDsn = String.fromEnvironment(
@@ -34,8 +43,13 @@ bool get isStaging => environment == 'staging';
 /// Whether this is a development build
 bool get isDevelopment => environment == 'development' || kDebugMode;
 
-/// Base URL for the UMIRA API
-String get apiUrl => _kDefaultApiUrl;
+/// Base URL for the UMIRA API.
+/// Uses compile-time `--dart-define=UMIRA_API_URL=...` when set,
+/// otherwise falls back to a platform-aware default.
+String get apiUrl {
+  if (_kDefaultApiUrl.isNotEmpty) return _kDefaultApiUrl;
+  return _defaultApiUrl;
+}
 
 /// Sentry DSN — empty string disables Sentry
 String get sentryDsn => _kDefaultSentryDsn;
