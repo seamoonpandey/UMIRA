@@ -3,15 +3,29 @@ import { env } from "../config/env.js";
 import type { AIProvider, ChatMessage } from "./provider.js";
 
 export class OpenAIProvider implements AIProvider {
-  private client = new OpenAI({ apiKey: env.OPENAI_API_KEY });
-  name() { return "openai:" + env.OPENAI_MODEL; }
+  private client: OpenAI;
+  private model: string;
+  private allowJsonMode: boolean;
+
+  constructor(opts?: { baseURL?: string; apiKey?: string; model?: string; allowJsonMode?: boolean }) {
+    this.client = new OpenAI({
+      apiKey: opts?.apiKey ?? env.OPENAI_API_KEY,
+      baseURL: opts?.baseURL ?? undefined,
+    });
+    this.model = opts?.model ?? env.OPENAI_MODEL;
+    this.allowJsonMode = opts?.allowJsonMode ?? true;
+  }
+
+  name() { return "openai:" + this.model; }
+
   async chatJson(opts: { messages: ChatMessage[]; maxTokens?: number; temperature?: number }) {
     const res = await this.client.chat.completions.create({
-      model: env.OPENAI_MODEL,
+      model: this.model,
       messages: opts.messages,
       temperature: opts.temperature ?? 0.2,
       max_tokens: opts.maxTokens ?? 1200,
-      response_format: { type: "json_object" },
+      ...(this.allowJsonMode ? { response_format: { type: "json_object" as const } } : {}),
+      ...(this.model.toLowerCase().includes("deepseek") ? { extra_body: { chat_template_kwargs: { thinking: false } } } : {}),
     });
     const content = res.choices[0]?.message?.content ?? "{}";
     return JSON.parse(content);
